@@ -173,7 +173,7 @@ tbody.innerHTML = html;
 
   if (!token) {
     alert('⚠️ Unauthorized: No authentication token found. Please login first.');
-    window.location.href = '/index.html';
+    window.location.href = '/login.html';
     return;
   }
 
@@ -1266,7 +1266,7 @@ socket.emit('getUserBets', (response) => {
   socket.on('auth_error', function(data) {
     console.error('Authentication error:', data.message);
     alert('❌ ' + data.message);
-    window.location.href = '/index.html';
+    window.location.href = '/login.html';
   });
 
   // Handle connection errors

@@ -234,6 +234,7 @@
 
         // History
         const listRes = await api.getDepositHistory();
+        console.log('Deposit History:', listRes);
         if (listRes.success) {
           const historyBox = document.getElementById('deposits-history-list');
           historyBox.innerHTML = '';
@@ -243,7 +244,7 @@
             return;
           }
 
-          listRes.data.forEach(item => {
+          listRes.data.deposits.forEach(item => {
             const dateStr = new Date(item.submitted_at || item.created_at).toLocaleDateString();
             let statusBadge = '';
             

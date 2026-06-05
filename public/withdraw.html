@@ -161,6 +161,7 @@
 
         // History
         const listRes = await api.getWithdrawalHistory();
+        console.log('Withdrawal History:', listRes);
         if (listRes.success) {
           const historyBox = document.getElementById('withdrawals-history-list');
           historyBox.innerHTML = '';
@@ -170,7 +171,7 @@
             return;
           }
 
-          listRes.data.forEach(item => {
+          listRes.data.withdrawals.forEach(item => {
             const dateStr = new Date(item.requested_at || item.created_at).toLocaleDateString();
             let statusBadge = '';
             

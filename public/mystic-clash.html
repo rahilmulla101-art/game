@@ -174,8 +174,8 @@
     <img class="beast tiger"  src="tiger.png">
     
     <!-- My Bet Badges -->
-    <div id="myBetD" class="my-bet-badge">My Bet: ₹0</div>
-    <div id="myBetT" class="my-bet-badge">My Bet: ₹0</div>
+    
+    <!-- <div id="myBetT" class="my-bet-badge">My Bet: ₹0</div> -->
 
     <div class="timer" id="timer">--</div>
     
@@ -203,11 +203,13 @@
       <div class="felt">
         <div class="zone d" onclick="placeBet('dragon')">
           <div class="total-label">TOTAL BET</div>
+          <div id="myBetD" class="my-bet-badge">My Bet: ₹0</div>
           <div class="total-val" id="dragonTotal">0</div>
           <div class="chip-area" id="chipAreaD"></div>
         </div>
         <div class="zone t" onclick="placeBet('tiger')">
           <div class="total-label">TOTAL BET</div>
+          <div id="myBetT" class="my-bet-badge">My Bet: ₹0</div>
           <div class="total-val" id="tigerTotal">0</div>
           <div class="chip-area" id="chipAreaT"></div>
         </div>
