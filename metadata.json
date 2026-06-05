@@ -1,0 +1,6 @@
+{
+  "name": "Dragon vs Tiger Server",
+  "description": "Base Node.js and Express backend setup with Socket.IO and MySQL support for the Dragon vs Tiger online casino application.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

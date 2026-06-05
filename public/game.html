@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Casino Arena - Dragon vs Tiger</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;750&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <title>Obsidian Orbit | Dragon vs Tiger &amp; Color Prediction</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .display-font {
+        font-family: 'Space Grotesk', sans-serif;
+      }
+      .mono-font {
+        font-family: 'JetBrains Mono', sans-serif;
+      }
+      .perspective-1000 {
+        perspective: 1000px;
+      }
+      .rotate-y-180 {
+        transform: rotateY(180deg);
+      }
+      .transform-style-3d {
+        transform-style: preserve-3d;
+      }
+      .backface-hidden {
+        backface-visibility: hidden;
+      }
+      /* Card opening animations */
+      .card-glow-dragon {
+        box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+      }
+      .card-glow-tiger {
+        box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);
+      }
+         .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .text-glow-gold {
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+        .text-glow-crimson {
+            text-shadow: 0 0 15px rgba(255, 0, 51, 0.6);
+        }
+        @keyframes pulse-red {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pulse-red {
+            animation: pulse-red 2s infinite;
+        }
+        canvas {
+            pointer-events: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scroll-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ffb4ab",
+                    "on-primary-fixed-variant": "#544600",
+                    "on-tertiary": "#00363a",
+                    "surface": "#131313",
+                    "on-primary-container": "#705e00",
+                    "inverse-surface": "#e5e2e1",
+                    "error-container": "#93000a",
+                    "background": "#131313",
+                    "surface-container-highest": "#353534",
+                    "on-secondary-container": "#00616d",
+                    "surface-variant": "#353534",
+                    "on-surface-variant": "#d0c6ab",
+                    "outline-variant": "#4d4732",
+                    "secondary-container": "#00e3fd",
+                    "on-primary-fixed": "#221b00",
+                    "cyber-purple": "#BC13FE",
+                    "on-secondary-fixed": "#001f24",
+                    "on-primary": "#3a3000",
+                    "inverse-primary": "#705d00",
+                    "primary": "#fff6df",
+                    "secondary-fixed-dim": "#00daf3",
+                    "on-background": "#e5e2e1",
+                    "primary-fixed-dim": "#e9c400",
+                    "outline": "#999077",
+                    "border-highlight": "rgba(255, 255, 255, 0.15)",
+                    "secondary": "#bdf4ff",
+                    "neon-crimson": "#FF0033",
+                    "on-tertiary-container": "#006a70",
+                    "tertiary-fixed": "#79f5ff",
+                    "surface-tint": "#e9c400",
+                    "charcoal-glass": "rgba(26, 26, 26, 0.6)",
+                    "primary-fixed": "#ffe16d",
+                    "tertiary-container": "#00f1ff",
+                    "on-secondary-fixed-variant": "#004f58",
+                    "on-surface": "#e5e2e1",
+                    "surface-container-high": "#2a2a2a",
+                    "on-tertiary-fixed-variant": "#004f54",
+                    "surface-container-low": "#1c1b1b",
+                    "surface-container": "#201f1f",
+                    "surface-container-lowest": "#0e0e0e",
+                    "tertiary-fixed-dim": "#00dbe8",
+                    "surface-bright": "#3a3939",
+                    "on-error-container": "#ffdad6",
+                    "inverse-on-surface": "#313030",
+                    "primary-container": "#ffd700",
+                    "on-tertiary-fixed": "#002022",
+                    "on-error": "#690005",
+                    "secondary-fixed": "#9cf0ff",
+                    "on-secondary": "#00363d",
+                    "tertiary": "#defcff",
+                    "surface-dim": "#131313"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "20px",
+                    "gutter": "16px",
+                    "margin-desktop": "40px",
+                    "unit": "4px",
+                    "container-max": "1200px"
+            },
+            "fontFamily": {
+                    "stats-num": ["Inter"],
+                    "label-bold": ["Inter"],
+                    "display-lg-mobile": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-md": ["Inter"]
+            },
+            "fontSize": {
+                    "stats-num": ["20px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "800"}],
+                    "label-bold": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "36px", "letterSpacing": "-0.04em", "fontWeight": "900"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.04em", "fontWeight": "900"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+  </head>
+  <body class="bg-[#0b0c14] text-gray-100 min-h-screen flex flex-col justify-between overflow-x-hidden">
+    
+    <!-- Outer ambient lighting nodes -->
+    <div class="absolute top-0 left-0 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/15 via-[#08090f] to-transparent pointer-events-none z-0"></div>
+
+    <header class="border-b border-gray-800/60 bg-black/50 backdrop-blur-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center border border-amber-500/20 shadow-lg">
+            <span class="text-xl">🐉</span>
+          </div>
+          <div>
+            <h1 class="text-md font-bold tracking-tight display-font text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-400 to-amber-500">
+              DRAGON <span class="text-gray-500 text-xs">VS</span> TIGER
+            </h1>
+            <p id="socket-status" class="text-[9px] text-gray-500 font-mono tracking-wider flex items-center gap-1.5 uppercase">
+              <span class="h-1.5 w-1.5 rounded-full bg-red-500 inline-block animate-pulse"></span> Offline sync
+            </p>
+          </div>
+        </div>
+
+        <!-- Navigation utilities -->
+        <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-400">
+          <a href="/game.html" class="text-amber-500">Lobby</a>
+          <a href="/deposit.html" class="hover:text-white transition">Deposit</a>
+          <a href="/withdraw.html" class="hover:text-white transition">Withdraw</a>
+          <a href="/profile.html" class="hover:text-white transition">Profile</a>
+          <a href="/support.html" class="hover:text-white transition">Support</a>
+        </nav>
+
+        <!-- Balance Dashboard -->
+        <div class="flex items-center gap-4">
+          <div class="bg-gray-900 border border-amber-500/10 px-4 py-2 rounded-xl flex items-center gap-3">
+            <span class="text-amber-500 text-sm">🪙</span>
+            <div>
+              <p class="text-[8px] text-gray-500 font-mono uppercase tracking-wider">Your Balance</p>
+              <p id="wallet-balance" class="text-amber-400 text-sm font-bold font-mono">₹0.00</p>
+            </div>
+          </div>
+          <button onclick="handleLogout()" class="text-xs text-gray-400 hover:text-red-500 border border-gray-800 px-3 py-2 rounded-xl transition font-mono bg-black/40">
+            Signout
+          </button>
+        </div>
+      </div>
+      <!-- Mobile Bar -->
+      <div class="md:hidden flex justify-around border-t border-gray-800/40 bg-black/60 py-2.5 text-xs text-gray-400 font-medium">
+        <a href="/game.html" class="text-amber-500">Lobby</a>
+        <a href="/deposit.html" class="hover:text-white transition">Deposit</a>
+        <a href="/withdraw.html" class="hover:text-white transition">Withdraw</a>
+        <a href="/profile.html" class="hover:text-white transition">Profile</a>
+        <a href="/support.html" class="hover:text-white transition">Support</a>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 relative z-10">
+      
+      <!-- GAMES SELECTION GRID -->
+      <div class="mb-12">
+        <h2 class="text-2xl font-bold display-font text-white mb-8 flex items-center gap-2">
+          <span class="text-amber-500">🎮</span> Select Your Game
+        </h2>
+        
+
+
+<!-- <style>
+     
+    </style>
+
+<body class="bg-surface text-on-surface scroll-hide overflow-x-hidden selection:bg-secondary-container selection:text-on-secondary-container">
+ TopAppBar Shell 
+
+<main class="pt-20 pb-24">
+Hero Section: Dragon vs Tiger -->
+<section class="relative min-h-[90vh] flex flex-col justify-end px-margin-mobile pb-12 overflow-hidden" id="dragon-tiger-hero" style="
+    margin-bottom: 20px;
+">
+<!-- Background Image -->
+<div class="absolute inset-0 z-0">
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent z-10"></div>
+<img alt="Epic Dragon vs Tiger Battle" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLtDLzqr-B4yqpothNU635V6oNdx7URg9wrSXceilgT9LNUNsudLyDxGN6gkbM3GCbmGsJk9hlbjMHQSgWUO3rYxcalmeHXFdALz4nAux1bjCoBjbB1XW_LFNM-WE0XMRrd34QFkiULW0UptUv5qHxdwZqCQnzA3WTfCvcj7NqzPw2-fUQu0cedCBlZknbnIBcCuXdSm_h6UZV_MuEBmh5drL27jqVv6pOZLSM781KD57slFLqm_B0tNQw">
+<canvas id="fire-canvas" width="390" height="1810"></canvas>
+</div>
+<!-- Content -->
+<div class="relative z-20 space-y-6">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-neon-crimson animate-pulse-red shadow-[0_0_8px_rgba(255,0,51,0.8)]"></span>
+<span class="font-label-bold text-label-bold text-on-surface uppercase tracking-widest">LIVE • 12.4K PLAYING</span>
+</div>
+<h2 class="font-display-lg text-display-lg-mobile italic text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] leading-none uppercase">DRAGON vs TIGER</h2>
+<!-- Odds Display -->
+<div class="grid grid-cols-2 gap-4">
+<div class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center border-l-4 border-l-primary-fixed">
+<span class="font-label-bold text-label-bold text-on-surface-variant opacity-70">DRAGON</span>
+<span class="font-stats-num text-stats-num text-primary-fixed text-glow-gold">1.95x</span>
+</div>
+<div class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center border-r-4 border-r-neon-crimson">
+<span class="font-label-bold text-label-bold text-on-surface-variant opacity-70">TIGER</span>
+<span class="font-stats-num text-stats-num text-neon-crimson text-glow-crimson">1.95x</span>
+</div>
+</div>
+<!-- CTA -->
+<button class="w-full bg-primary-container text-on-primary-fixed font-display-lg text-headline-md py-6 rounded-2xl shadow-[0_8px_32px_rgba(255,215,0,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3" onclick="window.location.href='/mystic-clash.html'">
+                    PLAY NOW
+                    <span class="material-symbols-outlined">bolt</span>
+</button>
+</div>
+</section>
+<!-- Secondary Section: Color Prediction -->
+<section class="relative min-h-[95vh] flex flex-col justify-center px-margin-mobile py-16 overflow-hidden" id="color-prediction">
+<!-- Background Image -->
+<div class="absolute inset-0 z-0">
+<div class="absolute inset-0 bg-gradient-to-b from-surface via-surface/30 to-surface z-10"></div>
+<img alt="Color Prediction Pro Arena" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLtuhj47zM_YnCsAvF6Gapbxh9R36XEExO9Zp31hy29f96DbG9x3AEHmJVXxKom3LeOiyQATVWY8fY2RRmeG-IlHIOyBaTSD4igRy71XBPv7gQvSLGH5b1k2vP_5AF-t2DdQbhogJnWNiL9n7U_ITny5A8eFzN3BS0RtGKNBMMJ6DibMZjpdQ3cAoEiKgkSneIDL9ozmafLsa_FiQTGYY0e_iFwOEJrK-okruiWMaCF_F29mIEr03XgtAUI">
+<canvas id="coin-canvas" width="390" height="1810"></canvas>
+</div>
+<!-- Content -->
+<div class="relative z-20 space-y-10">
+<div class="text-center">
+<h3 class="font-display-lg text-display-lg-mobile text-transparent bg-clip-text bg-gradient-to-r from-secondary-fixed via-white to-cyber-purple drop-shadow-sm">COLOR PREDICTION</h3>
+<div class="inline-flex items-center gap-2 mt-2 px-4 py-1.5 bg-secondary-container/20 rounded-full border border-secondary-container/30 backdrop-blur-md">
+<span class="font-label-bold text-label-bold text-secondary-fixed">POOL: 4.82M CREDITS</span>
+</div>
+</div>
+<!-- History Bubbles -->
+<div class="space-y-3">
+<p class="font-label-bold text-label-bold text-on-surface-variant text-center opacity-60">LAST 5 ROUNDS</p>
+<div class="flex justify-center gap-3">
+<div class="w-10 h-10 rounded-full bg-neon-crimson border-2 border-white/20 shadow-[0_0_10px_rgba(255,0,51,0.4)] flex items-center justify-center font-bold">R</div>
+<div class="w-10 h-10 rounded-full bg-neon-crimson border-2 border-white/20 shadow-[0_0_10px_rgba(255,0,51,0.4)] flex items-center justify-center font-bold">R</div>
+<div class="w-10 h-10 rounded-full bg-blue-600 border-2 border-white/20 shadow-[0_0_10px_rgba(37,99,235,0.4)] flex items-center justify-center font-bold">B</div>
+<div class="w-10 h-10 rounded-full bg-green-500 border-2 border-white/20 shadow-[0_0_10px_rgba(34,197,94,0.4)] flex items-center justify-center font-bold">G</div>
+<div class="w-10 h-10 rounded-full bg-neon-crimson border-2 border-white/20 shadow-[0_0_10px_rgba(255,0,51,0.4)] flex items-center justify-center font-bold">R</div>
+</div>
+</div>
+<!-- Selection Area -->
+<div class="glass-card rounded-3xl p-8 space-y-8 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+<div class="flex justify-between items-center gap-4">
+<div class="flex-1 aspect-square rounded-full bg-neon-crimson shadow-[inset_0_0_20px_rgba(0,0,0,0.5),0_0_20px_rgba(255,0,51,0.3)] border-4 border-white/10 flex items-center justify-center active:scale-90 transition-transform cursor-pointer">
+<span class="text-white font-stats-num text-stats-num">RED</span>
+</div>
+<div class="flex-1 aspect-square rounded-full bg-blue-600 shadow-[inset_0_0_20px_rgba(0,0,0,0.5),0_0_20px_rgba(37,99,235,0.3)] border-4 border-white/10 flex items-center justify-center active:scale-90 transition-transform cursor-pointer">
+<span class="text-white font-stats-num text-stats-num">BLUE</span>
+</div>
+<div class="flex-1 aspect-square rounded-full bg-primary-container shadow-[inset_0_0_20px_rgba(0,0,0,0.5),0_0_20px_rgba(255,215,0,0.3)] border-4 border-white/10 flex items-center justify-center active:scale-90 transition-transform cursor-pointer">
+<span class="text-on-primary font-stats-num text-stats-num">GOLD</span>
+</div>
+</div>
+<button class="w-full bg-white text-surface-container-lowest font-display-lg text-headline-md py-5 rounded-xl shadow-2xl hover:bg-secondary-fixed transition-colors flex items-center justify-center gap-3" onclick="window.location.href='/color.html'">
+                        PREDICT NOW
+                        <span class="material-symbols-outlined">payments</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar Shell -->
+
+<script>
+        // Particle Systems
+        const fireCanvas = document.getElementById('fire-canvas');
+        const coinCanvas = document.getElementById('coin-canvas');
+
+        function setupCanvas(canvas) {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            return canvas.getContext('2d');
+        }
+
+        // Fire Embers for Dragon Section
+        const fireCtx = setupCanvas(fireCanvas);
+        const embers = [];
+        for(let i=0; i<40; i++) {
+            embers.push({
+                x: Math.random() * fireCanvas.width,
+                y: fireCanvas.height + Math.random() * 100,
+                size: Math.random() * 3 + 1,
+                speedY: Math.random() * 1.5 + 0.5,
+                speedX: (Math.random() - 0.5) * 1,
+                opacity: Math.random()
+            });
+        }
+
+        // Falling Coins for Prediction Section
+        const coinCtx = setupCanvas(coinCanvas);
+        const coins = [];
+        for(let i=0; i<25; i++) {
+            coins.push({
+                x: Math.random() * coinCanvas.width,
+                y: Math.random() * -coinCanvas.height,
+                size: Math.random() * 10 + 5,
+                speedY: Math.random() * 2 + 2,
+                rotation: Math.random() * Math.PI * 2,
+                rotSpeed: Math.random() * 0.1
+            });
+        }
+
+        function animate() {
+            // Fire Particles
+            fireCtx.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
+            embers.forEach(p => {
+                p.y -= p.speedY;
+                p.x += p.speedX;
+                p.opacity -= 0.005;
+                if(p.y < 0 || p.opacity <= 0) {
+                    p.y = fireCanvas.height;
+                    p.x = Math.random() * fireCanvas.width;
+                    p.opacity = Math.random();
+                }
+                fireCtx.fillStyle = `rgba(255, ${Math.random()*100 + 50}, 0, ${p.opacity})`;
+                fireCtx.beginPath();
+                fireCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                fireCtx.fill();
+            });
+
+            // Coin Particles
+            coinCtx.clearRect(0, 0, coinCanvas.width, coinCanvas.height);
+            coins.forEach(c => {
+                c.y += c.speedY;
+                c.rotation += c.rotSpeed;
+                if(c.y > coinCanvas.height) {
+                    c.y = -50;
+                    c.x = Math.random() * coinCanvas.width;
+                }
+                coinCtx.save();
+                coinCtx.translate(c.x, c.y);
+                coinCtx.rotate(c.rotation);
+                coinCtx.fillStyle = '#FFD700';
+                coinCtx.shadowBlur = 10;
+                coinCtx.shadowColor = 'rgba(255, 215, 0, 0.5)';
+                coinCtx.beginPath();
+                coinCtx.ellipse(0, 0, c.size, c.size/2, 0, 0, Math.PI * 2);
+                coinCtx.fill();
+                coinCtx.restore();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', () => {
+            fireCanvas.width = window.innerWidth;
+            fireCanvas.height = window.innerHeight;
+            coinCanvas.width = window.innerWidth;
+            coinCanvas.height = window.innerHeight;
+        });
+
+        animate();
+    </script>
+
+
+
+      </div>
+
+      <!-- GAMEBOARD & ANALYTICS SECTION -->
+      <div class="md:grid md:grid-cols-3 md:gap-8 items-start space-y-8 md:space-y-0">
+      
+        <!-- GAMEBOARD COLUMN -->
+        
+
+        <!-- ANALYTICAL COLUMN (RECENT ROUNDS LIST & MY ACTIVE BETS) -->
+      <div class="space-y-6">
+        
+        <!-- PLAYER PROFILE METRICS -->
+        <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-6">
+          <div class="flex items-center gap-4">
+            <div id="profile-avatar" class="h-12 w-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl font-bold font-mono text-amber-550">U</div>
+            <div>
+              <p id="player-fullname" class="text-sm font-semibold text-white">Guest Player</p>
+              <p id="player-mobile" class="text-xs text-gray-500 font-mono">Checking session...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT ROUND RESULTS -->
+        <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-6">
+          <h2 class="text-xs uppercase font-mono tracking-widest text-amber-500/80 mb-4 flex justify-between items-center">
+            <span>Trend & Board Stats</span>
+            <span class="text-gray-500 font-normal">Last 10</span>
+          </h2>
+
+          <div id="list-trends" class="flex flex-wrap gap-2.5">
+            <!-- Trends populate programmatically -->
+            <div class="text-gray-650 text-xs font-mono py-2">Calculating match layouts...</div>
+          </div>
+        </div>
+
+        <!-- USER PLACED BETS LEDGER -->
+        <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-6">
+          <h2 class="text-xs uppercase font-mono tracking-widest text-amber-550/80 mb-4">My Wagers Ledger</h2>
+          <div class="overflow-hidden">
+            <div class="max-h-[160px] overflow-y-auto space-y-3" id="ledger-bets">
+              <!-- Placed bets load here -->
+              <p class="text-xs text-gray-500 font-mono py-3 text-center">No active bets recorded in this session.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="border-t border-gray-850 bg-black/60 py-6 mt-12">
+      <div class="max-w-7xl mx-auto px-6 text-center text-xs text-gray-500 font-mono flex flex-col md:flex-row justify-between items-center gap-4">
+        <p>&copy; 2026 Provably Fair Cyber Casino Loop.</p>
+        <p>Real-time telemetry and server-side verification secured.</p>
+      </div>
+    </footer>
+
+    <!-- WebSocket Client Library Import -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/api.js"></script>
+    <script>
+      let currentRoundId = null;
+      let selectedWagerAmount = 10;
+      let isBettingOpen = false;
+
+      // Ensure authorization guarding
+      const requireAuth = () => {
+        const token = localStorage.getItem('dvt_token');
+        if (!token) {
+          window.location.href = 'login.html';
+        }
+      };
+      
+      window.addEventListener('DOMContentLoaded', requireAuth);
+
+      // Pre-select Default Chip Amount
+      function selectChip(amount) {
+        selectedWagerAmount = amount;
+        
+        // Remove selection border highlights
+        document.querySelectorAll('.chip-item').forEach(el => {
+          el.classList.remove('border-amber-500', 'border-red-500', 'bg-amber-500/10', 'bg-red-500/10');
+        });
+
+        const activeChip = document.getElementById(`chip-${amount}`);
+        if (activeChip) {
+          if (amount === 1000) {
+            activeChip.classList.add('border-red-500', 'bg-red-500/10');
+          } else {
+            activeChip.classList.add('border-amber-500', 'bg-amber-500/10');
+          }
+        }
+      }
+
+      // Sync User profile elements
+      async function syncUserMetrics() {
+        const profile = await api.getProfile();
+        if (profile.success) {
+          document.getElementById('player-fullname').innerText = profile.data.full_name;
+          document.getElementById('player-mobile').innerText = `+91 ${profile.data.mobile}`;
+          document.getElementById('profile-avatar').innerText = profile.data.full_name.substring(0, 2).toUpperCase();
+        }
+
+        const balanceRes = await api.getBalance();
+        if (balanceRes.success) {
+          document.getElementById('wallet-balance').innerText = `₹${parseFloat(balanceRes.data.wallet_balance).toFixed(2)}`;
+        }
+      }
+
+      // Render trend layout indices (Last 10 results history)
+      async function loadTrendHistory() {
+        const res = await api.getRecentRounds();
+        if (res.success) {
+          const trendsBox = document.getElementById('list-trends');
+          trendsBox.innerHTML = '';
+
+          const completed = res.data.filter(r => r.status === 'completed' && r.result);
+          if (completed.length === 0) {
+            trendsBox.innerHTML = `<span class="text-xs text-gray-500 font-mono">Waiting for finished rounds...</span>`;
+            return;
+          }
+
+          completed.slice(0, 12).forEach(round => {
+            const el = document.createElement('div');
+            let color = '';
+            let label = '';
+            let icon = '';
+
+            if (round.result === 'dragon') {
+              color = 'bg-red-950/60 text-red-400 border-red-500/30';
+              label = 'D';
+              icon = '🐉';
+            } else if (round.result === 'tiger') {
+              color = 'bg-amber-950/60 text-amber-500 border-amber-500/30';
+              label = 'T';
+              icon = '🐅';
+            } else {
+              color = 'bg-emerald-950/60 text-emerald-400 border-emerald-500/30';
+              label = 'TIE';
+              icon = '🤝';
+            }
+
+            el.className = `flex flex-col items-center justify-center h-10 w-10 rounded-xl border ${color} font-bold text-xs shadow-md cursor-help`;
+            el.title = `Round: ${round.round_number}\nOutcome: ${round.result.toUpperCase()}\nCard Draw: [DRG ${round.dragon_card} | TGR ${round.tiger_card}]`;
+            el.innerHTML = `
+              <span class="text-[9px]">${icon}</span>
+              <span class="leading-none mt-0.5">${label}</span>
+            `;
+            trendsBox.appendChild(el);
+          });
+        }
+      }
+
+      // Fetch wagers logs
+      async function syncWagersLedger() {
+        const res = await api.getBetHistory();
+        if (res.success) {
+          const ledgerBox = document.getElementById('ledger-bets');
+          ledgerBox.innerHTML = '';
+
+          if (res.data.length === 0) {
+            ledgerBox.innerHTML = `<p class="text-[11px] text-gray-500 font-mono py-4 text-center">Your wagers will appear here once placed.</p>`;
+            return;
+          }
+
+          res.data.slice(0, 8).forEach(bet => {
+            const dateStr = new Date(bet.created_at).toLocaleTimeString();
+            let statusBadge = '';
+            if (bet.status === 'pending') {
+              statusBadge = `<span class="text-xs text-yellow-500 animate-pulse font-mono font-medium">Pending</span>`;
+            } else if (bet.status === 'won') {
+              statusBadge = `<span class="text-xs text-emerald-400 font-bold font-mono">Won +₹${parseFloat(bet.payout_amount || 0).toFixed(1)}</span>`;
+            } else if (bet.status === 'lost') {
+              statusBadge = `<span class="text-xs text-red-500 font-mono">Lost</span>`;
+            } else if (bet.status === 'tie_refund') {
+              statusBadge = `<span class="text-xs text-blue-400 font-mono">Refunded</span>`;
+            }
+
+            const item = document.createElement('div');
+            item.className = 'bg-black/60 border border-gray-850 p-3 rounded-xl flex items-center justify-between text-xs font-mono';
+            item.innerHTML = `
+              <div class="space-y-0.5">
+                <p class="text-semibold text-gray-300">Target: <span class="uppercase font-extrabold ${bet.bet_on === 'dragon' ? 'text-red-400' : bet.bet_on === 'tiger' ? 'text-amber-400' : 'text-emerald-400'}">${bet.bet_on}</span> (₹${parseInt(bet.bet_amount)})</p>
+                <p class="text-[10px] text-gray-500">RD ID: ${bet.round_id} @ ${dateStr}</p>
+              </div>
+              <div>
+                ${statusBadge}
+              </div>
+            `;
+            ledgerBox.appendChild(item);
+          });
+        }
+      }
+
+      // Place bet execution
+      async function placeWager(targetSelection) {
+        if (!isBettingOpen) {
+          api.showToast('error', 'Wagering is currently locked for calculation.');
+          return;
+        }
+        if (!currentRoundId) {
+          api.showToast('error', 'Game round loading error. Try reloading page.');
+          return;
+        }
+
+        const res = await api.placeBet(currentRoundId, targetSelection, selectedWagerAmount);
+        if (res.success) {
+          api.showToast('success', `Placed ₹${selectedWagerAmount} on ${targetSelection.toUpperCase()}!`);
+          // Instantly refresh balance & wagers list
+          syncUserMetrics();
+          syncWagersLedger();
+        } else {
+          // Toast managed automatically by apiCall errors
+        }
+      }
+
+      // Reset card visual structures
+      function resetVisualArena() {
+        const cardInnerDragon = document.getElementById('card-inner-dragon');
+        const cardInnerTiger = document.getElementById('card-inner-tiger');
+        
+        cardInnerDragon.classList.remove('rotate-y-180', 'card-glow-dragon');
+        cardInnerTiger.classList.remove('rotate-y-180', 'card-glow-tiger');
+      }
+
+      // Animate card reveal results
+      function cardDrawerReveal(result, dragonCard, tigerCard) {
+        // Feed text elements
+        document.getElementById('dragon-card-center').innerText = dragonCard.slice(0, -1);
+        document.getElementById('dragon-card-corner-top').innerText = dragonCard;
+        document.getElementById('dragon-card-suit-top').innerText = dragonCard.slice(-1);
+
+        document.getElementById('tiger-card-center').innerText = tigerCard.slice(0, -1);
+        document.getElementById('tiger-card-corner-top').innerText = tigerCard;
+        document.getElementById('tiger-card-suit-top').innerText = tigerCard.slice(-1);
+
+        // Adjust suit colored rendering
+        const isRedD = dragonCard.includes('♥') || dragonCard.includes('♦');
+        document.getElementById('card-front-dragon').style.color = isRedD ? '#ef4444' : '#000000';
+
+        const isRedT = tigerCard.includes('♥') || tigerCard.includes('♦');
+        document.getElementById('card-front-tiger').style.color = isRedT ? '#ef4444' : '#000000';
+
+        // Flip animation staggered sequences
+        const cardInnerDragon = document.getElementById('card-inner-dragon');
+        const cardInnerTiger = document.getElementById('card-inner-tiger');
+
+        setTimeout(() => {
+          cardInnerDragon.classList.add('rotate-y-180');
+          if (result === 'dragon') cardInnerDragon.classList.add('card-glow-dragon');
+        }, 100);
+
+        setTimeout(() => {
+          cardInnerTiger.classList.add('rotate-y-180');
+          if (result === 'tiger') cardInnerTiger.classList.add('card-glow-tiger');
+        }, 800);
+      }
+
+      // Initiate Socket Sync Engine
+      function initSocketConnections() {
+        const socketStatus = document.getElementById('socket-status');
+        const token = localStorage.getItem('dvt_token');
+        
+        // Connect to Socket.IO matching our backend standard
+        const socket = io();
+
+        socket.on('connect', () => {
+          socketStatus.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span> Dynamic link live`;
+          socket.emit('join_game', { token });
+        });
+
+        socket.on('disconnect', () => {
+          socketStatus.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span> Retrying connection...`;
+        });
+
+        // 1. Live countdown start event listener
+        socket.on('round_start', (data) => {
+          currentRoundId = data.round_id;
+          document.getElementById('round-serial').innerText = `ROUND ID: ${data.round_number}`;
+          isBettingOpen = true;
+
+          resetVisualArena();
+          syncUserMetrics(); // Refresh balance state
+          
+          document.getElementById('btn-bet-dragon').classList.remove('opacity-40');
+          document.getElementById('btn-bet-tie').classList.remove('opacity-40');
+          document.getElementById('btn-bet-tiger').classList.remove('opacity-40');
+
+          document.getElementById('timer-label').innerText = 'SEC PLACE BETS';
+          document.getElementById('timer-clock').className = 'text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-amber-400 to-amber-600 font-mono tracking-tight leading-none';
+          
+          // Render Live count and match statistics
+          startClientSideTimer(data.timeLeft);
+        });
+
+        // 2. Bets closed countdown block event listener
+        socket.on('betting_closed', (data) => {
+          isBettingOpen = false;
+          document.getElementById('btn-bet-dragon').classList.add('opacity-40');
+          document.getElementById('btn-bet-tie').classList.add('opacity-40');
+          document.getElementById('btn-bet-tiger').classList.add('opacity-40');
+
+          document.getElementById('timer-clock').innerText = 'LOCKED';
+          document.getElementById('timer-clock').className = 'text-3xl font-extrabold text-red-500 font-sans tracking-tight leading-none';
+          document.getElementById('timer-label').innerText = 'CALCULATING VERIFICATION';
+        });
+
+        // 3. Round Result broadcast trigger listener
+        socket.on('round_result', (data) => {
+          isBettingOpen = false;
+          cardDrawerReveal(data.result, data.dragon_card, data.tiger_card);
+          
+          // Reload history grids and charts
+          setTimeout(() => {
+            loadTrendHistory();
+            syncWagersLedger();
+          }, 2000);
+        });
+
+        // 4. Secure client-specific bet won or payout alerts
+        socket.on('bet_settled', (announcement) => {
+          if (announcement.won) {
+            api.showToast('success', announcement.message);
+          } else {
+            api.showToast('info', announcement.message || 'Wager resolved.');
+          }
+          // Reload balance
+          setTimeout(() => {
+            syncUserMetrics();
+            syncWagersLedger();
+          }, 1000);
+        });
+      }
+
+      // Client Countdown UI sync
+      let timerIntervalId = null;
+      function startClientSideTimer(secsLeft) {
+        if (timerIntervalId) clearInterval(timerIntervalId);
+        
+        let localSecs = secsLeft;
+        const progress = document.getElementById('countdown-progress');
+        const clock = document.getElementById('timer-clock');
+
+        const updateVisuals = () => {
+          if (localSecs <= 0) {
+            clock.innerText = 'LOCKED';
+            progress.style.width = '0%';
+            clearInterval(timerIntervalId);
+            return;
+          }
+          clock.innerText = String(localSecs).padStart(2, '0');
+          const pct = (localSecs / 20) * 100;
+          progress.style.width = `${pct}%`;
+        };
+
+        updateVisuals();
+        timerIntervalId = setInterval(() => {
+          localSecs--;
+          updateVisuals();
+        }, 1000);
+      }
+
+      // Perform logout cleanups
+      function handleLogout() {
+        localStorage.removeItem('dvt_token');
+        localStorage.removeItem('dvt_user');
+        window.location.href = 'login.html';
+      }
+
+      // Fire Bootstrap Routines
+      async function mainLoaderBootstrap() {
+        selectChip(10);
+        await syncUserMetrics();
+        await loadTrendHistory();
+        await syncWagersLedger();
+        
+        // Load socket listeners
+        initSocketConnections();
+      }
+
+      window.addEventListener('DOMContentLoaded', mainLoaderBootstrap);
+    </script>
+  </body>
+</html>

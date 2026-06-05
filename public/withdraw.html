@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Withdraw Funds - Dragon vs Tiger Casino</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .display-font {
+        font-family: 'Space Grotesk', sans-serif;
+      }
+      .mono-font {
+        font-family: 'JetBrains Mono', sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-[#0b0c14] text-gray-100 min-h-screen flex flex-col justify-between overflow-x-hidden">
+    
+    <!-- Outer ambient lighting nodes -->
+    <div class="absolute top-0 left-0 w-full h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/10 via-[#08090f] to-transparent pointer-events-none z-0"></div>
+
+    <header class="border-b border-gray-800/60 bg-black/50 backdrop-blur-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="/game.html" class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-red-650 to-amber-505 flex items-center justify-center border border-amber-500/20 shadow-lg">
+            <span class="text-xl">💳</span>
+          </div>
+          <div>
+            <h1 class="text-md font-bold tracking-tight display-font text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-400">
+              PAYOUT DRAWER
+            </h1>
+            <p class="text-[9px] text-[#22c55e]/60 font-mono tracking-wider uppercase">Direct Bank Receipts</p>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation Bar -->
+        <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-400 font-sans">
+          <a href="/game.html" class="hover:text-white transition">Lobby</a>
+          <a href="/deposit.html" class="hover:text-white transition">Deposit</a>
+          <a href="/withdraw.html" class="text-amber-500">Withdraw</a>
+          <a href="/profile.html" class="hover:text-white transition">Profile</a>
+          <a href="/support.html" class="hover:text-white transition">Support</a>
+        </nav>
+
+        <div class="bg-gray-900 border border-amber-500/10 px-4 py-2 rounded-xl flex items-center gap-2">
+          <span class="text-amber-500 text-sm">🪙</span>
+          <div>
+            <p class="text-[8px] text-gray-500 font-mono uppercase tracking-wider">Your Balance</p>
+            <p id="wallet-balance" class="text-amber-400 text-sm font-bold font-mono">₹0.00</p>
+          </div>
+        </div>
+      </div>
+      <!-- Mobile Bar -->
+      <div class="md:hidden flex justify-around border-t border-gray-800/40 bg-black/60 py-2.5 text-xs text-gray-400 font-medium">
+        <a href="/game.html" class="hover:text-white transition">Lobby</a>
+        <a href="/deposit.html" class="hover:text-white transition">Deposit</a>
+        <a href="/withdraw.html" class="text-amber-500">Withdraw</a>
+        <a href="/profile.html" class="hover:text-white transition">Profile</a>
+        <a href="/support.html" class="hover:text-white transition">Support</a>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-5xl w-full mx-auto p-6 md:grid md:grid-cols-5 md:gap-8 items-start relative z-10 space-y-8 md:space-y-0">
+      
+      <!-- SUBMISSION DRAWER form -->
+      <div class="md:col-span-3 space-y-6">
+        <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-6 md:p-8 space-y-6 relative overflow-hidden backdrop-blur-md">
+          <div class="absolute inset-x-0 h-20 bg-gradient-to-b from-amber-500/5 to-transparent pointer-events-none"></div>
+
+          <div class="relative z-10">
+            <h2 class="text-lg font-bold display-font text-white tracking-wide">REQUEST PAIRED BANK DRAWER</h2>
+            <p class="text-xs text-gray-400 font-mono mt-1">Submit bank transfer routing details. Double check credentials.</p>
+          </div>
+
+          <form id="form-withdrawal" onsubmit="handleWithdrawalSubmit(event)" class="space-y-5">
+            <div>
+              <label class="block text-[11px] uppercase font-mono tracking-wider text-amber-500/85 mb-2">Withdrawal Amount (₹)</label>
+              <input type="number" id="withdraw-amount" placeholder="Minimum threshold: ₹200" required min="200"
+                     class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-xs outline-none transition text-white placeholder-gray-700 font-sans focus:ring-1 focus:ring-amber-500/10" />
+            </div>
+
+            <!-- bank metadata fields -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[11px] uppercase font-mono tracking-wider text-amber-500/85 mb-2">Account Holder Full Name</label>
+                <input type="text" id="withdraw-name" placeholder="As it appears on passbook" required
+                       class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-xs outline-none transition text-white placeholder-gray-700 font-sans focus:ring-1 focus:ring-amber-500/10" />
+              </div>
+              <div>
+                <label class="block text-[11px] uppercase font-mono tracking-wider text-amber-500/85 mb-2 font-bold text-red-500">IFSC Routing Bank Code</label>
+                <input type="text" id="withdraw-ifsc" placeholder="e.g. SBIN0001234" required minlength="11" maxlength="11"
+                       class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-xs outline-none transition text-white placeholder-gray-700 font-mono tracking-widest focus:ring-1 focus:ring-amber-500/10 uppercase" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] uppercase font-mono tracking-wider text-amber-500/85 mb-2">Bank Account Number</label>
+              <input type="text" id="withdraw-account" placeholder="Enter bank account number" required
+                     class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-xs outline-none transition text-white placeholder-gray-700 font-mono focus:ring-1 focus:ring-amber-500/10" />
+            </div>
+
+            <div>
+              <label class="block text-[11px] uppercase font-mono tracking-wider text-amber-500/85 mb-2">UPI Identifier Address (Optional)</label>
+              <input type="text" id="withdraw-upi" placeholder="e.g. name@upi"
+                     class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-xs outline-none transition text-white placeholder-gray-700 font-mono focus:ring-1 focus:ring-amber-500/10" />
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-gradient-to-r from-amber-550 to-amber-500 hover:from-amber-400 text-black text-xs font-bold font-mono tracking-widest rounded-xl transition duration-300 shadow-xl cursor-pointer">
+              SUBMIT BANK PAYOUT REQUEST
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- PAYOUT LIST SIDE PANEL -->
+      <div class="md:col-span-2 space-y-6">
+        <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-6 backdrop-blur-md">
+          <h2 class="text-xs uppercase font-mono tracking-widest text-amber-500/80 mb-4 flex justify-between items-center">
+            <span>Payout Ledger</span>
+            <span class="text-gray-500">History</span>
+          </h2>
+
+          <div id="withdrawals-history-list" class="space-y-3 max-h-[480px] overflow-y-auto">
+            <!-- Dynamic data from API requests -->
+            <p class="text-xs text-gray-550 font-mono py-4 text-center">No payout history statements found.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="border-t border-gray-850 bg-black/60 py-6 mt-12">
+      <div class="max-w-7xl mx-auto px-6 text-center text-xs text-gray-500 font-mono">
+        <p>&copy; 2026 Anti-fraud clearance standards active. KYC requirements are minimal.</p>
+      </div>
+    </footer>
+
+    <!-- API Client Scripts -->
+    <script src="/js/api.js"></script>
+    <script>
+      // Verify active credentials on mount
+      const checkAuth = () => {
+        const token = localStorage.getItem('dvt_token');
+        if (!token) {
+          window.location.href = 'login.html';
+        }
+      };
+      
+      window.addEventListener('DOMContentLoaded', checkAuth);
+
+      // Load balance summary metrics & withdrawals history list
+      async function syncData() {
+        // Balance
+        const balanceRes = await api.getBalance();
+        if (balanceRes.success) {
+          document.getElementById('wallet-balance').innerText = `₹${parseFloat(balanceRes.data.wallet_balance).toFixed(2)}`;
+        }
+
+        // History
+        const listRes = await api.getWithdrawalHistory();
+        if (listRes.success) {
+          const historyBox = document.getElementById('withdrawals-history-list');
+          historyBox.innerHTML = '';
+
+          if (listRes.data.length === 0) {
+            historyBox.innerHTML = `<p class="text-xs text-gray-500 font-mono py-4 text-center">No withdraw payout statements reported.</p>`;
+            return;
+          }
+
+          listRes.data.forEach(item => {
+            const dateStr = new Date(item.requested_at || item.created_at).toLocaleDateString();
+            let statusBadge = '';
+            
+            if (item.status === 'pending') {
+              statusBadge = `<span class="bg-yellow-950/40 text-yellow-500 border border-yellow-500/20 px-2 py-0.5 rounded text-[10px] font-bold">Pending</span>`;
+            } else if (item.status === 'processing') {
+              statusBadge = `<span class="bg-blue-950/40 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded text-[10px] font-bold">Processing</span>`;
+            } else if (item.status === 'approved') {
+              statusBadge = `<span class="bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">Approved</span>`;
+            } else if (item.status === 'rejected') {
+              statusBadge = `<span class="bg-red-950/40 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">Rejected</span>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'bg-black/40 border border-gray-850 p-3 rounded-lg flex items-center justify-between text-xs font-mono';
+            card.innerHTML = `
+              <div class="space-y-0.5">
+                <p class="font-bold text-gray-250">₹${parseFloat(item.amount).toFixed(2)}</p>
+                <p class="text-[10px] text-gray-500">AC: ****${item.account_number.slice(-4)}</p>
+                <p class="text-[9px] text-gray-550">${dateStr}</p>
+              </div>
+              <div class="flex flex-col items-end gap-1.5">
+                ${statusBadge}
+                ${item.admin_note ? `<p class="text-[9px] text-red-450 text-wrap max-w-[125px] text-right">Note: ${item.admin_note}</p>` : ''}
+              </div>
+            `;
+            historyBox.appendChild(card);
+          });
+        }
+      }
+
+      // Submit payout notification
+      async function handleWithdrawalSubmit(e) {
+        e.preventDefault();
+        const amount = document.getElementById('withdraw-amount').value;
+        const account_name = document.getElementById('withdraw-name').value.trim();
+        const ifsc_code = document.getElementById('withdraw-ifsc').value.trim();
+        const account_number = document.getElementById('withdraw-account').value.trim();
+        const upi_id = document.getElementById('withdraw-upi').value.trim() || null;
+
+        const payload = {
+          amount,
+          account_name,
+          account_number,
+          ifsc_code,
+          upi_id
+        };
+
+        const res = await api.requestWithdrawal(payload);
+        if (res.success) {
+          api.showToast('success', 'Payout request submitted successfully. Cleanses in progress!');
+          // Reset
+          document.getElementById('form-withdrawal').reset();
+          syncData();
+        } else {
+          // Errors are handled dynamically by api.js
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', syncData);
+    </script>
+  </body>
+</html>

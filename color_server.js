@@ -1,0 +1,671 @@
+// Color Game Module
+import jwt from 'jsonwebtoken';
+
+export function initColorGame(io, con) {
+  
+   const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_dragon_vs_tiger_key';
+  var number = [5, 8, 7, 5, 3, 4, 6, 8, 6, 3];
+  const userPastBetsMap = new Map();
+  let colorGameState = {
+  currentColor: null,
+  timeRemaining:30,
+  round : 569897871323,
+  bets: {
+    red: new Map(),
+    violet: new Map(),
+    green: new Map(),
+  0: new Map(),
+  1: new Map(),
+  2: new Map(),
+  3: new Map(),
+  4: new Map(),
+  5: new Map(),
+  6: new Map(),
+  7: new Map(),
+  8: new Map(),
+  9: new Map()
+  },
+  totalBets: {
+    red: 0,
+    violet: 0,
+    green: 0,
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
+    7: 0,
+    8: 0,
+    9: 0
+  },
+  timeRemaining: 30, // 30 seconds for betting
+  isSpinning: false
+};
+var color_won;
+var number_won;
+const colorNamespace = io.of('/color');
+
+ function recordPastBet(userId, round, side, amount, winnings, isWin) {
+    const pastList = userPastBetsMap.get(userId) || [];
+    const timeString = new Date().toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour12: false });
+    
+    pastList.unshift({
+      round: String(round),
+      side: String(side).toUpperCase(),
+      amount: Number(amount),
+      result: isWin ? `+₹${Number(winnings).toFixed(2)}` : `-₹${Number(amount).toFixed(2)}`,
+      isWin: isWin,
+      time: timeString
+    });
+    
+    // Limit log size to last 50 entries
+    if (pastList.length > 50) pastList.splice(50);
+    userPastBetsMap.set(userId, pastList);
+
+    // Emit live updates back to this user if online
+    const userSocket = Array.from(colorNamespace.sockets.values()).find(s => s.userId === userId);
+    if (userSocket) {
+      userSocket.emit("userCurrentBets", []);
+      userSocket.emit("userPreviousBets", pastList);
+    }
+  }
+
+  // Helper to construct a user's current round active bets
+  function getUserCurrentBets(userId) {
+    const current = [];
+    for (const [key, map] of Object.entries(colorGameState.bets)) {
+      if (map && map.has(userId)) {
+        current.push({
+          round: String(colorGameState.round),
+          side: String(key).toUpperCase(),
+          amount: Number(map.get(userId))
+        });
+      }
+    }
+    return current;
+  }
+
+colorNamespace.on('connection', (socket) => {
+  colorNamespace.emit('numberArray', number);
+  console.log('A client connected to Color game namespace',socket.id);
+
+  // socket.emit('gameState', colorGameState);
+
+
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+socket.on('setUserId', async (token) => {
+  console.log('Received token for authentication:', token);
+  
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    socket.userId = decoded.id;
+    socket.userData = decoded;
+    
+    console.log('User authenticated:', socket.userId);
+
+    socket.emit('auth_success', {
+      userId: socket.userId
+    });
+
+  } catch (error) {
+    console.error('❌ Invalid token:', error.message);
+    socket.emit('auth_error', {
+      message: 'Invalid token'
+    });
+    socket.disconnect();
+    return;
+  }
+
+  const userId = socket.userId;
+  console.log("Color game user connected:", userId);
+        const userPastHistory = userPastBetsMap.get(userId) || [];
+      const userActiveBets = getUserCurrentBets(userId);
+      socket.emit("userCurrentBets", userActiveBets);
+      socket.emit("userPreviousBets", userPastHistory);
+
+  try {
+    const connection = await con.getConnection();
+    console.log("✅ Got database connection for user:", userId);
+
+    try {
+      const [result] = await connection.query(
+        "SELECT wallet_balance FROM users WHERE id = ?",
+        [userId]
+      );
+
+      if (result && result.length > 0) {
+        const userWallet = result[0].wallet_balance;
+        socket.wallet = userWallet;
+        socket.emit('updateWallet', userWallet);
+        console.log(`💰 User ${userId} color game wallet: ${userWallet}`);
+      } else {
+        console.log(`❌ User ${userId} not found in database.`);
+        socket.emit('walletError', { message: 'User not found' });
+      }
+    } catch (queryError) {
+      console.error("❌ Error executing wallet query:", queryError.message);
+      socket.emit('walletError', { message: 'Failed to fetch wallet' });
+    } finally {
+      connection.release();
+    }
+  } catch (connectionError) {
+    console.error("❌ Error getting database connection:", connectionError.message);
+    socket.emit('walletError', { message: 'Database connection error' });
+  }
+});
+
+  socket.on('placeBet', async (data) => {
+    console.log('Received placeBet event:', data);
+    const { colorOrNumber, amount } = data;
+    
+    if (colorGameState.isSpinning) {
+      socket.emit('betError', 'Cannot place bet while wheel is spinning');
+      return;
+    }
+
+    const userId = socket.userId;
+    
+    if (!userId) {
+      socket.emit('betError', 'User not authenticated');
+      return;
+    }
+
+    console.log(`User ${userId} placed bet: ${amount} on ${colorOrNumber}`);
+
+    // Validate inputs
+    if (!['red', 'violet', 'green', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(colorOrNumber)) {
+      socket.emit('betError', 'Invalid color or number');
+      return;
+    }
+
+    try {
+      const connection = await con.getConnection();
+      console.log("✅ Got database connection for bet placement");
+
+      try {
+        const [result] = await connection.query(
+          "SELECT wallet_balance FROM users WHERE id = ?",
+          [userId]
+        );
+
+        if (!result || result.length === 0) {
+          socket.emit('betError', 'User not found');
+          return;
+        }
+
+        const userBalance = result[0].wallet_balance;
+        console.log(`User ${userId} current balance: ${userBalance}`);
+
+        if (userBalance < amount) {
+          socket.emit('betError', 'Insufficient funds');
+          console.log(`❌ User ${userId} insufficient balance`);
+          return;
+        }
+
+        // 1. Fetch current active round id
+        const [activeRounds] = await connection.query(
+          `SELECT id FROM color_rounds WHERE status = 'betting_open' ORDER BY id DESC LIMIT 1`
+        );
+
+        if (!activeRounds || activeRounds.length === 0) {
+          socket.emit('betError', 'No active betting round found');
+          console.log(`❌ No active round found for user ${userId}`);
+          return;
+        }
+
+        const roundId = activeRounds[0].id;
+
+        // Place the bet in game state
+        colorGameState.bets[colorOrNumber].set(userId, (colorGameState.bets[colorOrNumber].get(userId) || 0) + amount);
+        colorGameState.totalBets[colorOrNumber] += amount;
+        console.log(`✅ Bet placed. Total bets on ${colorOrNumber}: ${colorGameState.totalBets[colorOrNumber]}`);
+        socket.wallet -= amount;
+
+        // Update wallet in database
+        await connection.query(
+          "UPDATE users SET wallet_balance = wallet_balance - ? WHERE id = ?",
+          [amount, userId]
+        );
+        
+        console.log(`✅ User ${userId} wallet updated. Deducted ${amount}`);
+
+        // 2. Insert bet record into the color_bets table
+        const betType = ['red', 'violet', 'green'].includes(colorOrNumber) ? 'color' : 'number';
+        await connection.query(
+          `INSERT INTO color_bets 
+           (round_id, user_id, bet_type, bet_on, bet_amount, status, winnings, placed_at, created_at, updated_at) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), NOW())`,
+          [roundId, userId, betType, colorOrNumber, amount, 'pending', 0.00]
+        );
+        console.log(roundId,userId,betType,colorOrNumber,amount,"jkhjkahdajk");
+        
+        console.log(`✅ Bet recorded in color_bets table for user ${userId} on round ${roundId}`);
+
+        // Emit events
+        socket.emit('betPlaced', { colorOrNumber, amount });
+        socket.emit('updateWallet', socket.wallet);
+        colorNamespace.emit('updateTotalBets', colorGameState.totalBets);
+
+      } catch (queryError) {
+        console.error("❌ Error executing bet query:", queryError.message);
+        socket.emit('betError', 'Database error during bet placement');
+      } finally {
+        connection.release();
+      }
+    } catch (connectionError) {
+      console.error("❌ Error getting database connection:", connectionError.message);
+      socket.emit('betError', 'Database connection error');
+    }
+  });
+
+  // Get current round data (read-only)
+  socket.on('getCurrentRound', async (callback) => {
+    try {
+      const connection = await con.getConnection();
+      console.log("✅ Got database connection for getCurrentRound");
+
+      try {
+        const [result] = await connection.query(
+          `SELECT id, period_number, status, total_bets_red, total_bets_green, 
+                  total_bets_violet, total_bets_number, betting_open_at, betting_close_at
+           FROM color_rounds WHERE status = 'betting_open' ORDER BY id DESC LIMIT 1`
+        );
+
+        if (result && result.length > 0) {
+          callback({ success: true, round: result[0] });
+        } else {
+          callback({ success: false, message: 'No active round found' });
+        }
+      } catch (queryError) {
+        console.error("❌ Error fetching current round:", queryError.message);
+        callback({ success: false, message: 'Error fetching round data' });
+      } finally {
+        connection.release();
+      }
+    } catch (connectionError) {
+      console.error("❌ Error getting database connection:", connectionError.message);
+      callback({ success: false, message: 'Database connection error' });
+    }
+  });
+
+  // Get game results history (read-only)
+  socket.on('getGameHistory', async (limit, callback) => {
+    const queryLimit = Math.min(parseInt(limit) || 20, 100);
+    
+    try {
+      const connection = await con.getConnection();
+      console.log("✅ Got database connection for getGameHistory");
+
+      try {
+        const [result] = await connection.query(
+          `SELECT r.period_number, crh.winning_color, crh.winning_number, crh.total_winners, 
+                  crh.total_winnings_paid, crh.declared_at
+           FROM color_results_history crh
+           JOIN color_rounds r ON crh.round_id = r.id
+           ORDER BY crh.declared_at DESC LIMIT ?`,
+          [queryLimit]
+        );
+
+        callback({ success: true, results: result || [] });
+      } catch (queryError) {
+        console.error("❌ Error fetching game history:", queryError.message);
+        callback({ success: false, message: 'Error fetching history' });
+      } finally {
+        connection.release();
+      }
+    } catch (connectionError) {
+      console.error("❌ Error getting database connection:", connectionError.message);
+      callback({ success: false, message: 'Database connection error' });
+    }
+  });
+
+  // Get user's color bets history (read-only)
+  socket.on('getUserBets', async (callback) => {
+    const userId = socket.userId;
+    if (!userId) {
+      callback({ success: false, message: 'User not authenticated' });
+      return;
+    }
+
+    try {
+      const connection = await con.getConnection();
+      console.log("✅ Got database connection for getUserBets");
+
+      try {
+        const [result] = await connection.query(
+          `SELECT cb.id, r.period_number, cb.bet_type, cb.bet_on, cb.bet_amount, 
+                  cb.status, cb.winnings, cb.placed_at
+           FROM color_bets cb
+           JOIN color_rounds r ON cb.round_id = r.id
+           WHERE cb.user_id = ?
+           ORDER BY cb.placed_at DESC LIMIT 50`,
+          [userId]
+        );
+
+        callback({ success: true, bets: result || [] });
+      } catch (queryError) {
+        console.error("❌ Error fetching user bets:", queryError.message);
+        callback({ success: false, message: 'Error fetching bets' });
+      } finally {
+        connection.release();
+      }
+    } catch (connectionError) {
+      console.error("❌ Error getting database connection:", connectionError.message);
+      callback({ success: false, message: 'Database connection error' });
+    }
+  });
+
+  // Get user color game stats (read-only)
+  socket.on('getUserStats', async (callback) => {
+    const userId = socket.userId;
+    if (!userId) {
+      callback({ success: false, message: 'User not authenticated' });
+      return;
+    }
+
+    try {
+      const connection = await con.getConnection();
+      console.log("✅ Got database connection for getUserStats");
+
+      try {
+        const [result] = await connection.query(
+          `SELECT total_bets_placed, total_bet_amount, total_winnings, wins, losses, last_bet_at
+           FROM user_color_stats WHERE user_id = ?`,
+          [userId]
+        );
+
+        if (result && result.length > 0) {
+          callback({ success: true, stats: result[0] });
+        } else {
+          callback({
+            success: true,
+            stats: {
+              total_bets_placed: 0,
+              total_bet_amount: 0,
+              total_winnings: 0,
+              wins: 0,
+              losses: 0,
+              last_bet_at: null
+            }
+          });
+        }
+      } catch (queryError) {
+        console.error("❌ Error fetching user stats:", queryError.message);
+        callback({ success: false, message: 'Error fetching stats' });
+      } finally {
+        connection.release();
+      }
+    } catch (connectionError) {
+      console.error("❌ Error getting database connection:", connectionError.message);
+      callback({ success: false, message: 'Database connection error' });
+    }
+  });
+});
+
+function startColorGame() {
+  colorGameState.round++;
+  // Send the number array to the client
+  colorNamespace.emit('numberArray', number);
+  colorGameState.timeRemaining = 30;
+  colorGameState.isSpinning = false;
+  colorNamespace.emit('bettingOpen');
+  var period = colorGameState.round;
+  const timer = setInterval(() => {
+    // Only emit if there are connected users (server efficiency)
+    const connectedUsers = colorNamespace.sockets.size;
+    if (connectedUsers > 0) {
+      // Generate an array of 10 random game results
+      const gameResults = Array.from({ length: 3 }, () => {
+        const userId = Math.floor(Math.random() * 10000000000); // 10-digit user ID
+        const number = Math.floor(Math.random() * 10);
+        const color = ['green', 'red', 'violet'][Math.floor(Math.random() * 3)];
+        const bet = Math.random() < 0.5 ? color : number.toString();
+        const amount = (Math.floor(Math.random() * 50) + 900) * 10  ; // Random 3-digit number
+
+        return {period, userId, bet, amount };
+      });
+
+      // Log the generated array
+      // console.log('Generated game results:', gameResults);
+
+      // Emit the generated results, round, and time update to clients
+      colorNamespace.emit('gameResultsArray', { gameResults });
+    }
+    
+    colorGameState.timeRemaining--;
+    colorNamespace.emit('timeUpdate', { timeRemaining: colorGameState.timeRemaining, round: colorGameState.round });
+    if (colorGameState.timeRemaining <= 0) {
+      clearInterval(timer);
+      spinWheel();
+    }
+  }, 1000);
+}
+
+async function spinWheel() {
+  colorGameState.isSpinning = true;
+  colorNamespace.emit('wheelSpinning');
+
+  const result = determineWinningColor();
+  colorGameState.currentColor = result;
+  
+  await processWinnings(result);
+  
+  setTimeout(() => {
+    colorNamespace.emit('gameResult', result);
+    console.log(`✅ Game result: ${result}`);
+    
+    setTimeout(() => {
+      resetGameState();
+    }, 1000);
+    
+    // Start next round after a delay
+    setTimeout(startColorGame, 5000);
+  }, 2000);
+}
+  function determineWinningColor() {
+    const totalBets = colorGameState.totalBets;
+    console.log("Total bets:", totalBets);
+    console.log("Red bets:", totalBets.red);
+    console.log("Violet bets:", totalBets.violet);
+    console.log("Green bets:", totalBets.green);
+  
+    // Log the individual bets for each color
+    console.log("Individual Red bets:", Array.from(colorGameState.bets.red.entries()));
+    console.log("Individual Violet bets:", Array.from(colorGameState.bets.violet.entries()));
+    console.log("Individual Green bets:", Array.from(colorGameState.bets.green.entries()));
+  
+    // Map numbers to their respective colors
+    const numberToColor = {
+      0: 'violet', 1: 'green', 2: 'red', 3: 'green', 4: 'red',
+      5: 'violet', 6: 'red', 7: 'green', 8: 'red', 9: 'green'
+    };
+  
+    // Calculplaced betate the potential payout for each number
+    const totalBetsByNumber = Array(10).fill(0);
+    const potentialPayouts = Array(10).fill(0);
+  
+    for (let i = 0; i < 10; i++) {
+      // Sum the bets for each number
+      totalBetsByNumber[i] = Array.from(colorGameState.bets[i.toString()].values()).reduce((a, b) => a + b, 0);
+  
+      // Calculate the potential payout
+      if (i === 0) {
+        potentialPayouts[i] = (totalBetsByNumber[i] * 9) + (totalBets.violet * 5) + (totalBets.red * 0.5);
+      } else if (i === 5) {
+        potentialPayouts[i] = (totalBetsByNumber[i] * 9) + (totalBets.violet * 5) + (totalBets.green * 0.5);
+      } else {
+        const numberMultiplier = 9;
+        const colorMultiplier = 2;
+        potentialPayouts[i] = (totalBetsByNumber[i] * numberMultiplier) + (totalBets[numberToColor[i]] * colorMultiplier);
+      }
+  
+      console.log(`Number ${i} potential payout: ${potentialPayouts[i]}`);
+    }
+  
+    // Find the number with the smallest potential payout
+    const minPayout = Math.min(...potentialPayouts);
+    const numbersWithMinPayout = potentialPayouts.map((payout, index) => payout === minPayout ? index : -1).filter(index => index !== -1);
+  
+    console.log("Numbers with minimum potential payout:", numbersWithMinPayout);
+  
+    // Randomly select one of the numbers with the minimum payout
+    const randomIndex = Math.floor(Math.random() * numbersWithMinPayout.length);
+    const winningNumber = numbersWithMinPayout[randomIndex];
+    const winningColor = numberToColor[winningNumber];
+    color_won = winningColor;
+    number_won = winningNumber;
+    console.log("Winning number:", winningNumber);
+    console.log("Winning color:", winningColor);
+
+  
+    number.shift();
+
+  // Add the winningNumber to the end of the number array
+    number.push(winningNumber);
+
+    
+    console.log("Updated number array:", number);
+    return winningNumber;
+  // Pop the first element of the number array
+    
+  }
+
+
+  async function processWinnings(winningNumber) {
+    const numberToColor = {
+      0: 'violet', 1: 'green', 2: 'red', 3: 'green', 4: 'red',
+      5: 'violet', 6: 'red', 7: 'green', 8: 'red', 9: 'green'
+    };
+
+    const winningColor = numberToColor[winningNumber];
+    const colorPayouts = winningNumber === 0
+      ? { violet: 5, red: 0.5 }
+      : winningNumber === 5
+        ? { violet: 5, green: 0.5 }
+        : { [winningColor]: 2 };
+
+    // Process winnings for the winning number
+    for (const [userId, betAmount] of colorGameState.bets[winningNumber.toString()]) {
+      const numberMultiplier = 9;
+      const actualWinnings = betAmount * numberMultiplier;
+
+      const userSocket = Array.from(colorNamespace.sockets.values()).find(s => s.userId === userId);
+      if (userSocket) {
+        userSocket.emit('winResult', {
+          number: winningNumber,
+          betAmount: betAmount,
+          winnings: actualWinnings
+        });
+      }
+      console.log(`✅ Win for user ${userId}: number=${winningNumber}, bet=${betAmount}, winnings=${actualWinnings}`);
+      await updateUserWallet(userId, actualWinnings);
+    }
+
+    // Process winnings for the winning color rules
+    for (const [color, colorMultiplier] of Object.entries(colorPayouts)) {
+      for (const [userId, betAmount] of colorGameState.bets[color]) {
+        const actualWinnings = betAmount * colorMultiplier;
+        const userSocket = Array.from(colorNamespace.sockets.values()).find(s => s.userId === userId);
+        if (userSocket) {
+          userSocket.emit('winResult', {
+            color: color,
+            betAmount: betAmount,
+            winnings: actualWinnings
+          });
+        }
+
+
+        console.log(`✅ Win for user ${userId}: color=${color}, bet=${betAmount}, winnings=${actualWinnings}`);
+        await updateUserWallet(userId, actualWinnings);
+      }
+    }
+
+    // For losing bets - money is already deducted, nothing more to do
+    const paidBetKeys = new Set([winningNumber.toString(), ...Object.keys(colorPayouts)]);
+    for (const key of Object.keys(colorGameState.bets)) {
+      if (!paidBetKeys.has(key)) {
+        for (const [userId, betAmount] of colorGameState.bets[key]) {
+          console.log(`❌ Loss for user ${userId}: bet on ${key}, amount ${betAmount} (already deducted at bet placement)`);
+          // No wallet update needed - money was already deducted when bet was placed
+        }
+      }
+    }
+
+//     for (const [userId, betAmount] of colorGameState.bets.red.entries()) {
+
+//     const won = /* your logic */;
+
+//     if (won) {
+
+//         const winnings = betAmount * multiplier;
+
+//         await updateUserWallet(userId, winnings);
+
+//         await connection.query(
+//             `UPDATE color_bets
+//              SET status='won',
+//                  winnings=?
+//              WHERE round_id=?
+//                AND user_id=?
+//                AND bet_on='red'
+//                AND status='pending'`,
+//             [winnings, currentRoundId, userId]
+//         );
+
+//     }
+// }
+  }
+
+async function updateUserWallet(userId, amount) {
+  try {
+    const connection = await con.getConnection();
+    console.log(`✅ Got connection to update wallet for user ${userId}`);
+
+    try {
+      await connection.query(
+        "UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?",
+        [amount, userId]
+      );
+      console.log(`✅ Wallet updated for user ${userId}. Amount: ${amount}`);
+
+      const socket = Array.from(colorNamespace.sockets.values()).find(s => s.userId === userId);
+      if (socket) {
+        socket.wallet += amount;
+        socket.emit('updateWallet', socket.wallet);
+        console.log(`💰 Emitted wallet update to user ${userId}: ${socket.wallet}`);
+      }
+    } catch (queryError) {
+      console.error(`❌ Error updating wallet for user ${userId}:`, queryError.message);
+    } finally {
+      connection.release();
+    }
+  } catch (connectionError) {
+    console.error(`❌ Error getting database connection:`, connectionError.message);
+  }
+}
+
+function resetGameState() {
+  colorGameState.bets = {
+    '0': new Map(), '1': new Map(), '2': new Map(), '3': new Map(), '4': new Map(),
+    '5': new Map(), '6': new Map(), '7': new Map(), '8': new Map(), '9': new Map(),
+    red: new Map(), violet: new Map(), green: new Map()
+  };
+  colorGameState.totalBets = {
+    red: 0,
+    violet: 0,
+    green: 0
+  };
+  for (let i = 0; i <= 9; i++) {
+    colorGameState.bets[i] = new Map();
+    colorGameState.totalBets[i] = 0;
+  };
+  // colorNamespace.emit('updateTotalBets', colorGameState.totalBets);
+}
+
+// Start the color game loop
+  startColorGame();
+}

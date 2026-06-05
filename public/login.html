@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Dragon vs Tiger Casino</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .display-font {
+        font-family: 'Space Grotesk', sans-serif;
+      }
+      .mono-font {
+        font-family: 'JetBrains Mono', sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-[#090a0f] text-gray-100 min-h-screen flex flex-col justify-between overflow-x-hidden">
+    
+    <!-- Header Background Glow -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/10 blur-[120px] rounded-full pointer-events-none"></div>
+
+    <header class="border-b border-gray-800/40 bg-black/40 backdrop-blur-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-red-650 to-amber-500 flex items-center justify-center shadow-xl border border-amber-500/20">
+            <span class="text-xl font-bold text-black font-serif">🐅</span>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold tracking-tight display-font text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-400">
+              DRAGON <span class="text-gray-400 text-xs">VS</span> TIGER
+            </h1>
+            <p class="text-[10px] text-amber-500/60 font-mono tracking-wider uppercase">Provably Fair Arena</p>
+          </div>
+        </a>
+        <div class="flex gap-3">
+          <a href="/leaderboard-view.html" class="text-xs text-gray-400 hover:text-amber-500 hover:bg-amber-500/10 px-3 py-1.5 rounded-lg border border-transparent hover:border-amber-500/20 font-mono tracking-wider transition">Rankings</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 flex items-center justify-center p-6 relative">
+      <div class="w-full max-w-md bg-gray-900/60 border border-gray-800/80 rounded-2xl p-8 backdrop-blur-xl shadow-2xl relative">
+        
+        <!-- Toggle Auth Mode -->
+        <div class="flex bg-black/50 p-1.5 rounded-xl border border-gray-800/60 mb-8">
+          <button id="tab-login" onclick="switchMode('login')" class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition display-font bg-amber-500 text-black">
+            LOGIN
+          </button>
+          <button id="tab-register" onclick="switchMode('register')" class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition text-gray-400 hover:text-white display-font">
+            SIGN UP
+          </button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form id="form-login" onsubmit="handleLogin(event)" class="space-y-6">
+          <div>
+            <label class="block text-xs uppercase font-mono tracking-wider text-amber-500/80 mb-2">Mobile Number</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-mono">+91</span>
+              <input type="tel" id="login-mobile" placeholder="Mobile registered number" required minlength="10" maxlength="10"
+                     class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 pl-14 pr-4 text-sm outline-none transition text-white placeholder-gray-600 focus:ring-1 focus:ring-amber-500/20" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs uppercase font-mono tracking-wider text-amber-500/80 mb-2">Secure Password</label>
+            <input type="password" id="login-password" placeholder="Enter security password" required
+                   class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-sm outline-none transition text-white placeholder-gray-600 focus:ring-1 focus:ring-amber-500/20" />
+          </div>
+
+          <button type="submit" class="w-full py-4 bg-gradient-to-r from-red-650 from-amber-500 hover:from-amber-400 hover:to-amber-500 text-black text-sm font-bold tracking-wider rounded-xl cursor-pointer shadow-xl shadow-amber-500/10 transition duration-300">
+            ENTER CASINO LOBBY
+          </button>
+        </form>
+
+        <!-- REGISTER FORM (HIDDEN) -->
+        <form id="form-register" onsubmit="handleRegister(event)" class="space-y-5 hidden">
+          <div>
+            <label class="block text-xs uppercase font-mono tracking-wider text-amber-500/80 mb-2">Display Full Name</label>
+            <input type="text" id="register-name" placeholder="Enter full name" required
+                   class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-sm outline-none transition text-white placeholder-gray-600 focus:ring-1 focus:ring-amber-500/20" />
+          </div>
+
+          <div>
+            <label class="block text-xs uppercase font-mono tracking-wider text-amber-500/80 mb-2">Mobile Number</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-mono">+91</span>
+              <input type="tel" id="register-mobile" placeholder="Enter 10-digit number" required minlength="10" maxlength="10"
+                     class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 pl-14 pr-4 text-sm outline-none transition text-white placeholder-gray-600 focus:ring-1 focus:ring-amber-500/20" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs uppercase font-mono tracking-wider text-amber-500/80 mb-2">Account password</label>
+            <input type="password" id="register-password" placeholder="Create a strong password" required minlength="6"
+                   class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-sm outline-none transition text-white placeholder-gray-600 focus:ring-1 focus:ring-amber-500/20" />
+          </div>
+
+          <div>
+            <label class="block text-xs uppercase font-mono tracking-wider text-amber-500/80 mb-2">Referral Code (Optional)</label>
+            <input type="text" id="register-refer" placeholder="Enter valid referral"
+                   class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-sm outline-none transition text-white placeholder-gray-600 focus:ring-1 focus:ring-amber-500/20" />
+          </div>
+
+          <button id="submit" type="submit" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 text-black text-sm font-bold tracking-wider rounded-xl cursor-pointer shadow-xl transition duration-300">
+            REGISTER NEW ACCOUNT
+          </button>
+        </form>
+
+        <div class="mt-6 text-center">
+          <a href="/admin-login.html" class="text-xs text-gray-500 hover:text-amber-500 transition font-mono tracking-wide">Are you an Admin? Sign in here</a>
+        </div>
+      </div>
+    </main>
+
+    <footer class="border-t border-gray-800/40 bg-black/60 py-6">
+      <div class="max-w-7xl mx-auto px-6 text-center flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500 font-mono">
+        <p>&copy; 2026 DRAGON VS TIGER arena. All rights reserved.</p>
+        <p class="text-red-500/60 flex items-center gap-1">🔞 Play responsibly. Out of extreme limits.</p>
+      </div>
+    </footer>
+
+    <!-- API Client Scripts -->
+    <script src="/js/api.js"></script>
+    <script>
+      // Automatically redirect to game.html on page enter if there is already a live valid token
+      const checkActiveSession = () => {
+        const token = localStorage.getItem('dvt_token');
+        if (token) {
+          window.location.href = 'game.html';
+        }
+      };
+      
+      window.addEventListener('DOMContentLoaded', checkActiveSession);
+
+      let currentMode = 'login';
+
+      function switchMode(mode) {
+        currentMode = mode;
+        const tabLog = document.getElementById('tab-login');
+        const tabReg = document.getElementById('tab-register');
+        const formLog = document.getElementById('form-login');
+        const formReg = document.getElementById('form-register');
+
+        if (mode === 'login') {
+          tabLog.className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold transition bg-amber-500 text-black';
+          tabReg.className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition';
+          formLog.classList.remove('hidden');
+          formReg.classList.add('hidden');
+        } else {
+          tabReg.className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold transition bg-emerald-500 text-black';
+          tabLog.className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition';
+          formReg.classList.remove('hidden');
+          formLog.classList.add('hidden');
+        }
+      }
+
+      async function handleLogin(e) {
+        e.preventDefault();
+        const mobile = document.getElementById('login-mobile').value.trim();
+        const pwd = document.getElementById('login-password').value.trim();
+
+        const response = await api.login(mobile, pwd);
+        if (response.success) {
+          localStorage.setItem('dvt_token', response.data.token);
+          localStorage.setItem('dvt_user', JSON.stringify(response.data.user));
+          api.showToast('success', 'Logged in successfully. Entering lobby...');
+          setTimeout(() => {
+            window.location.href = 'game.html';
+          }, 1000);
+        } else {
+          // Toast is triggered automatically by apiCall on error
+        }
+      }
+
+      async function handleRegister(e) {
+        e.preventDefault();
+        const name = document.getElementById('register-name').value.trim();
+        const mobile = document.getElementById('register-mobile').value.trim();
+        const pwd = document.getElementById('register-password').value.trim();
+        const ref = document.getElementById('register-refer').value.trim() || null;
+
+        const response = await api.register(mobile, pwd, name, ref);
+        if (response.success) {
+          localStorage.setItem('dvt_token', response.data.token);
+          localStorage.setItem('dvt_user', JSON.stringify(response.data.user));
+          api.showToast('success', 'Registration completed! Directing to gaming arena...');
+          setTimeout(() => {
+            window.location.href = 'game.html';
+          }, 1000);
+        } else {
+          // Error automatically displayed
+        }
+      }
+    </script>
+  </body>
+</html>

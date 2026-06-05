@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - Dragon vs Tiger Platform</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .display-font {
+        font-family: 'Space Grotesk', sans-serif;
+      }
+      .mono-font {
+        font-family: 'JetBrains Mono', sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-[#05060a] text-gray-200 min-h-screen flex flex-col md:flex-row overflow-x-hidden">
+
+    <!-- Admin Side Panels Navigation -->
+    <aside class="w-full md:w-64 bg-gray-950 border-b md:border-b-0 md:border-r border-red-950/20 px-6 py-6 flex flex-col justify-between shrink-0">
+      <div class="space-y-8">
+        <!-- Brand -->
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-red-600 to-red-950 flex items-center justify-center border border-red-500/20">
+            <span class="text-lg">⚙️</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold tracking-tight display-font text-white uppercase">Platform Master</h2>
+            <p class="text-[9px] text-red-500/60 font-mono tracking-widest uppercase">Admin Terminal</p>
+          </div>
+        </div>
+
+        <!-- Sidebar Navigation Lines -->
+        <nav class="flex flex-col gap-1 text-xs font-semibold font-mono tracking-wider">
+          <a href="/admin-dashboard.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl bg-red-950/30 text-red-400 border border-red-900/30">
+            <span>📊</span> Dashboard Overview
+          </a>
+          <a href="/admin-deposits.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+            <span>📥</span> Inflow Deposits
+            <span id="nav-pending-deposits-badge" class="ml-auto bg-red-900/40 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded text-[8px] hidden">-</span>
+          </a>
+          <a href="/admin-withdrawals.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+            <span>📤</span> Outflow Withdraws
+            <span id="nav-pending-withdrawals-badge" class="ml-auto bg-yellow-905/40 text-yellow-500 border border-yellow-500/20 px-1.5 py-0.5 rounded text-[8px] hidden">-</span>
+          </a>
+          <a href="/admin-users.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+            <span>👥</span> Users Controller
+          </a>
+          <a href="/admin-settings.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+            <span>⚙️</span> System Settings
+          </a>
+          <a href="/admin-tickets.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+            <span>💬</span> Support Tickets
+          </a>
+        </nav>
+      </div>
+
+      <div class="border-t border-red-950/20 pt-6 mt-8 flex flex-col gap-3">
+        <div class="flex items-center gap-3">
+          <div class="h-8 w-8 rounded-full bg-red-950/40 border border-red-500/20 flex items-center justify-center text-xs">🔒</div>
+          <div>
+            <p id="admin-name" class="text-[11px] font-semibold text-white">System Admin</p>
+            <p class="text-[9px] text-gray-500 font-mono uppercase">Full Access Granted</p>
+          </div>
+        </div>
+        <button onclick="handleAdminLogout()" class="w-full py-2.5 bg-gray-900 hover:bg-red-950/40 text-gray-400 hover:text-red-550 border border-gray-850 hover:border-red-950/30 rounded-xl text-[10px] font-mono transition tracking-wider text-center cursor-pointer">
+          CLOSE Master Session
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN BODY AREA -->
+    <main class="flex-1 p-6 md:p-10 space-y-8 min-w-0">
+      
+      <!-- Top header strip -->
+      <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-gray-900">
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white display-font uppercase">SYSTEM OVERVIEW PORTAL</h1>
+          <p class="text-[#a1a1aa] text-xs font-mono mt-1">Real-time platform activity and transaction indices.</p>
+        </div>
+        <button onclick="syncDashboardData()" class="px-4 py-2 bg-gray-950 border border-gray-850 text-xs text-gray-300 font-mono rounded-lg hover:text-white hover:bg-gray-900 transition active:scale-95">RELOAD telemetry</button>
+      </section>
+
+      <!-- METRIS GRID bento grid systems -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- Total Users Joined -->
+        <div class="bg-gray-950/50 border border-gray-900 p-6 rounded-2xl relative overflow-hidden flex flex-col justify-between">
+          <span class="absolute right-4 top-4 text-2xl opacity-10 select-none">👥</span>
+          <div>
+            <p class="text-[10px] uppercase font-mono tracking-widest text-[#a1a1aa]">TOTAL REGISTERED USERS</p>
+            <h3 id="stat-total-users" class="text-3xl font-extrabold text-white font-mono mt-2">0</h3>
+          </div>
+          <div class="border-t border-gray-900 pt-3 mt-4 text-[10px] text-gray-500 font-mono tracking-wide flex justify-between">
+            <span>New Today:</span>
+            <span id="stat-new-users-today" class="text-red-550 font-bold">0</span>
+          </div>
+        </div>
+
+        <!-- ACTIVE USERS TODAY -->
+        <div class="bg-gray-950/50 border border-gray-900 p-6 rounded-2xl relative overflow-hidden flex flex-col justify-between">
+          <span class="absolute right-4 top-4 text-2xl opacity-10 select-none">🔥</span>
+          <div>
+            <p class="text-[10px] uppercase font-mono tracking-widest text-[#a1a1aa]">ACTIVE PLAYERS TODAY</p>
+            <h3 id="stat-active-users" class="text-3xl font-extrabold text-white font-mono mt-2">0</h3>
+          </div>
+          <div class="border-t border-gray-900 pt-3 mt-4 text-[10px] text-gray-500 font-mono tracking-wide flex justify-between">
+            <span>Bets Placed Today:</span>
+            <span id="stat-total-bets-today" class="text-red-550 font-bold">0</span>
+          </div>
+        </div>
+
+        <!-- HOUSE INCOME AND SYSTEM MARGINS -->
+        <div class="bg-gray-950/50 border border-gray-900 p-6 rounded-2xl relative overflow-hidden flex flex-col justify-between">
+          <span class="absolute right-4 top-4 text-2xl opacity-10 select-none">🎯</span>
+          <div>
+            <p class="text-[10px] uppercase font-mono tracking-widest text-[#a1a1aa]">HOUSE MARGIN REVENUE (TODAY)</p>
+            <h3 id="stat-house-profit" class="text-3xl font-extrabold text-emerald-400 font-mono mt-2">₹0.00</h3>
+          </div>
+          <p class="text-[10px] text-gray-600 font-mono mt-4 border-t border-gray-900 pt-3">Calculated via: (bet_total - payouts)</p>
+        </div>
+
+        <!-- TOTAL TODAY DEPOSITS -->
+        <div class="bg-gray-950/50 border border-gray-900 p-6 rounded-2xl relative overflow-hidden flex flex-col justify-between">
+          <span class="absolute right-4 top-4 text-2xl opacity-10 select-none">📥</span>
+          <div>
+            <p class="text-[10px] uppercase font-mono tracking-widest text-[#a1a1aa]">CERTIFIED DEPOSITS TODAY</p>
+            <h3 id="stat-total-deposits" class="text-3xl font-extrabold text-white font-mono mt-2">₹0.00</h3>
+          </div>
+          <div class="border-t border-gray-900 pt-3 mt-4 text-[10px] text-gray-500 font-mono tracking-wide flex justify-between">
+            <span>Pending deposits:</span>
+            <span id="stat-pending-deposits" class="text-yellow-500 font-bold">0 requests</span>
+          </div>
+        </div>
+
+        <!-- TOTAL TODAY WITHDRAWALS -->
+        <div class="bg-gray-950/50 border border-gray-900 p-6 rounded-2xl relative overflow-hidden flex flex-col justify-between">
+          <span class="absolute right-4 top-4 text-2xl opacity-10 select-none">📤</span>
+          <div>
+            <p class="text-[10px] uppercase font-mono tracking-widest text-[#a1a1aa]">CERTIFIED WITHDRAWALS TODAY</p>
+            <h3 id="stat-total-withdrawals" class="text-3xl font-extrabold text-white font-mono mt-2">₹0.00</h3>
+          </div>
+          <div class="border-t border-gray-900 pt-3 mt-4 text-[10px] text-gray-500 font-mono tracking-wide flex justify-between">
+            <span>Pending withdraws:</span>
+            <span id="stat-pending-withdrawals" class="text-yellow-500 font-bold">0 requests</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ALERT ROOM ACTIONS AND TELEMETRY LOGS -->
+      <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-gradient-to-r from-red-950/10 to-transparent border border-red-950/30 p-6 rounded-2xl space-y-4">
+          <h3 class="text-xs font-semibold display-font text-white uppercase tracking-wider">Unresolved Action Room Alerts</h3>
+          <p class="text-xs text-gray-400">Critical transaction requests waiting for authorization:</p>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <a href="/admin-deposits.html" class="bg-black/60 border border-gray-850 p-4 rounded-xl flex flex-col justify-between">
+              <span id="alert-dep-badge" class="text-lg font-bold font-mono text-red-500">0</span>
+              <span class="text-[10px] text-gray-500 font-mono uppercase mt-1 tracking-wider">Pending Deposits</span>
+            </a>
+            <a href="/admin-withdrawals.html" class="bg-black/60 border border-gray-850 p-4 rounded-xl flex flex-col justify-between">
+              <span id="alert-with-badge" class="text-lg font-bold font-mono text-amber-500">0</span>
+              <span class="text-[10px] text-gray-500 font-mono uppercase mt-1 tracking-wider">Pending Withdrawals</span>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- API Client Scripts -->
+    <script src="/js/api.js"></script>
+    <script>
+      // Secure route checking
+      const requireAdmin = () => {
+        const token = localStorage.getItem('dvt_admin_token');
+        if (!token) {
+          window.location.href = 'admin-login.html';
+        }
+      };
+      
+      window.addEventListener('DOMContentLoaded', requireAdmin);
+
+      // Reload dashboard data
+      async function syncDashboardData() {
+        // Hydrate Admin display name
+        const adminUser = localStorage.getItem('dvt_admin_user');
+        if (adminUser) {
+          const parsed = JSON.parse(adminUser);
+          document.getElementById('admin-name').innerText = parsed.full_name || 'System Administrator';
+        }
+
+        const res = await api.getDashboard();
+        if (res.success && res.data) {
+          const data = res.data;
+          
+          // Hydrate Stats
+          document.getElementById('stat-total-users').innerText = data.totalUsers;
+          document.getElementById('stat-new-users-today').innerText = `${data.newUsersToday} users`;
+          document.getElementById('stat-active-users').innerText = data.activeUsersToday;
+          document.getElementById('stat-total-bets-today').innerText = `${data.totalBetsTodayCount} bets`;
+          
+          document.getElementById('stat-house-profit').innerText = `₹${parseFloat(data.houseProfitToday || 0).toFixed(2)}`;
+          document.getElementById('stat-house-profit').className = data.houseProfitToday >= 0 
+            ? 'text-3xl font-extrabold text-emerald-400 font-mono mt-2' 
+            : 'text-3xl font-extrabold text-red-500 font-mono mt-2';
+
+          document.getElementById('stat-total-deposits').innerText = `₹${parseFloat(data.totalDepositsToday || 0).toFixed(2)}`;
+          document.getElementById('stat-pending-deposits').innerText = `${data.pendingDepositsCount} deposits pending`;
+          
+          document.getElementById('stat-total-withdrawals').innerText = `₹${parseFloat(data.totalWithdrawalsToday || 0).toFixed(2)}`;
+          document.getElementById('stat-pending-withdrawals').innerText = `${data.pendingWithdrawalsCount} payouts pending`;
+
+          // Hydrate Action Room Alerts
+          document.getElementById('alert-dep-badge').innerText = data.pendingDepositsCount;
+          document.getElementById('alert-with-badge').innerText = data.pendingWithdrawalsCount;
+
+          // Sidebar badges
+          const depBadge = document.getElementById('nav-pending-deposits-badge');
+          if (data.pendingDepositsCount > 0) {
+            depBadge.innerText = data.pendingDepositsCount;
+            depBadge.classList.remove('hidden');
+          } else {
+            depBadge.classList.add('hidden');
+          }
+
+          const withBadge = document.getElementById('nav-pending-withdrawals-badge');
+          if (data.pendingWithdrawalsCount > 0) {
+            withBadge.innerText = data.pendingWithdrawalsCount;
+            withBadge.classList.remove('hidden');
+          } else {
+            withBadge.classList.add('hidden');
+          }
+        }
+      }
+
+      function handleAdminLogout() {
+        localStorage.removeItem('dvt_admin_token');
+        localStorage.removeItem('dvt_admin_user');
+        window.location.href = 'admin-login.html';
+      }
+
+      window.addEventListener('DOMContentLoaded', syncDashboardData);
+    </script>
+  </body>
+</html>

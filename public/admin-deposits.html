@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Deposits - Administrative Console</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body { font-family: 'Inter', sans-serif; }
+      .display-font { font-family: 'Space Grotesk', sans-serif; }
+      .mono-font { font-family: 'JetBrains Mono', sans-serif; }
+      ::-webkit-scrollbar { width: 5px; }
+      ::-webkit-scrollbar-track { background: #05060a; }
+      ::-webkit-scrollbar-thumb { background: #1e1b4b; border-radius: 10px; }
+    </style>
+  </head>
+  <body class="bg-[#05060a] text-gray-200 min-h-screen flex flex-col md:flex-row overflow-x-hidden">
+
+    <!-- Admin Side Panels Navigation -->
+    <aside class="w-full md:w-64 bg-gray-950 border-b md:border-b-0 md:border-r border-red-950/20 px-6 py-6 flex flex-col justify-between shrink-0">
+      <div class="space-y-8">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-red-650 to-red-950 flex items-center justify-center border border-red-500/20">
+            <span class="text-lg">⚙️</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold tracking-tight display-font text-white uppercase">Platform Master</h2>
+            <p class="text-[9px] text-red-500/60 font-mono tracking-widest uppercase">Admin Terminal</p>
+          </div>
+        </div>
+
+        <nav class="flex flex-col gap-1 text-xs font-semibold font-mono tracking-wider">
+          <a href="/admin-dashboard.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+            <span>📊</span> Dashboard Overview
+          </a>
+          <a href="/admin-deposits.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl bg-red-950/30 text-red-400 border border-red-900/30">
+            <span>📥</span> Inflow Deposits
+          </a>
+          <a href="/admin-withdrawals.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+            <span>📤</span> Outflow Withdraws
+          </a>
+          <a href="/admin-users.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+            <span>👥</span> Users Controller
+          </a>
+          <a href="/admin-settings.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+            <span>⚙️</span> System Settings
+          </a>
+        </nav>
+      </div>
+
+      <div class="border-t border-red-950/20 pt-6 mt-8 flex flex-col gap-3">
+        <div class="flex items-center gap-3">
+          <div class="h-8 w-8 rounded-full bg-red-950/40 border border-red-500/20 flex items-center justify-center text-xs">🔒</div>
+          <div>
+            <p id="admin-name" class="text-[11px] font-semibold text-white">System Admin</p>
+            <p class="text-[9px] text-gray-500 font-mono uppercase">Full Access Granted</p>
+          </div>
+        </div>
+        <button onclick="handleAdminLogout()" class="w-full py-2.5 bg-gray-900 hover:bg-red-950/40 text-gray-400 hover:text-red-500 border border-gray-800 rounded-xl text-[10px] font-mono transition cursor-pointer uppercase">
+          CLOSE Master Session
+        </button>
+      </div>
+    </aside>
+
+    <!-- CONTENT BODY AREA -->
+    <main class="flex-1 p-6 md:p-10 space-y-8 min-w-0">
+      
+      <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-gray-900">
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white display-font uppercase">DEPOSITS MONITOR TERMINAL</h1>
+          <p class="text-gray-400 text-xs font-mono mt-1">Verify payment receipts and credit user balance immediately.</p>
+        </div>
+      </section>
+
+      <!-- FILTERS AREA -->
+      <section class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-gray-950/40 border border-gray-900 p-4 rounded-xl">
+        <div class="flex bg-black/40 p-1 rounded-lg border border-gray-800 w-full sm:w-auto">
+          <button onclick="filterStatus('')" id="filter-all" class="px-4 py-1.5 rounded-md text-xs font-mono transition bg-red-950/40 text-red-400 border border-red-900/30">ALL</button>
+          <button onclick="filterStatus('pending')" id="filter-pending" class="px-4 py-1.5 rounded-md text-xs font-mono text-gray-400 hover:text-white transition">PENDING</button>
+          <button onclick="filterStatus('approved')" id="filter-approved" class="px-4 py-1.5 rounded-md text-xs font-mono text-gray-400 hover:text-white transition">APPROVED</button>
+          <button onclick="filterStatus('rejected')" id="filter-rejected" class="px-4 py-1.5 rounded-md text-xs font-mono text-gray-400 hover:text-white transition">REJECTED</button>
+        </div>
+      </section>
+
+      <!-- RESULTS GRID -->
+      <section id="deposits-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="col-span-full py-20 text-center text-gray-600 font-mono text-sm animate-pulse">
+              SYNCING INFLOW LEDGER...
+          </div>
+      </section>
+    </main>
+
+    <!-- DEPOSIT DETAIL MODAL -->
+    <div id="deposit-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-gray-950 border border-gray-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div class="p-5 border-b border-gray-900 flex justify-between items-center bg-black/20">
+                <h3 class="text-white font-bold display-font uppercase tracking-tight">Verify Deposit Receipt</h3>
+                <button onclick="closeDepositModal()" class="text-gray-500 hover:text-white transition cursor-pointer text-xl">✕</button>
+            </div>
+            <div id="deposit-modal-content" class="p-6 overflow-y-auto max-h-[80vh]">
+                <!-- Content via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- REJECTION MODAL -->
+    <div id="reject-modal" class="fixed inset-0 bg-black/80 backdrop-blur-xs hidden items-center justify-center z-50 transition-opacity">
+      <div class="bg-gray-950 border border-red-950/40 p-6 rounded-2xl max-w-sm w-full space-y-4 font-mono text-xs">
+        <h3 class="text-sm font-bold display-font text-white uppercase">REJECT TRANSACTION</h3>
+        <p class="text-xs text-gray-400 font-sans leading-relaxed">Provide a reason for rejection. This will be visible to the user.</p>
+        <input type="hidden" id="modal-target-id" />
+        <textarea id="modal-reject-note" placeholder="e.g. UTR already used or screenshot blurred" minlength="4" required rows="3"
+                  class="w-full bg-black/85 border border-gray-800 focus:border-red-500/40 rounded-xl py-2.5 px-3 text-xs outline-none text-white focus:ring-1 focus:ring-red-500/10 font-sans"></textarea>
+        <div class="flex gap-3 justify-end text-xs font-semibold">
+          <button onclick="closeRejectModal()" class="px-4 py-2 bg-gray-900 border border-gray-800 rounded-lg text-gray-300 cursor-pointer">Cancel</button>
+          <button onclick="submitRejectForm()" class="px-4 py-2 bg-red-800 hover:bg-red-700 text-white rounded-lg transition cursor-pointer">Submit Rejection</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+      let currentFilterStatus = '';
+      let currentPage = 1;
+
+      const requireAdmin = () => {
+        const token = localStorage.getItem('dvt_admin_token');
+        if (!token) window.location.href = 'admin-login.html';
+      };
+      
+      window.addEventListener('DOMContentLoaded', requireAdmin);
+
+      function filterStatus(status) {
+        currentFilterStatus = status;
+        document.querySelectorAll('.flex > button').forEach(btn => {
+          btn.className = 'px-4 py-1.5 rounded-md text-xs font-mono text-gray-400 hover:text-white transition';
+        });
+        const activeId = status === '' ? 'filter-all' : `filter-${status}`;
+        const activeBtn = document.getElementById(activeId);
+        if (activeBtn) activeBtn.className = 'px-4 py-1.5 rounded-md text-xs font-mono transition bg-red-950/40 text-red-400 border border-red-900/30';
+        currentPage = 1;
+        syncData();
+      }
+
+      async function copyUTR(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          api.showToast('success', 'UTR Copied to clipboard');
+        } catch (err) {
+          api.showToast('error', 'Failed to copy');
+        }
+      }
+
+      async function syncData() {
+        const adminUser = localStorage.getItem('dvt_admin_user');
+        if (adminUser) document.getElementById('admin-name').innerText = JSON.parse(adminUser).full_name || 'System Admin';
+
+        const res = await api.getDeposits(currentFilterStatus, currentPage);
+        if (res.success) {
+          const container = document.getElementById('deposits-container');
+          container.innerHTML = '';
+
+          if (res.data.deposits.length === 0) {
+            container.innerHTML = `<div class="col-span-full p-12 text-center text-gray-600 italic border border-dashed border-gray-900 rounded-2xl font-mono">No deposit filings found for this selection.</div>`;
+            return;
+          }
+
+          res.data.deposits.forEach(row => {
+            const statusIcon = row.status === 'approved' ? '✅' : row.status === 'rejected' ? '❌' : '⏳';
+            let statusBadge = '';
+            if (row.status === 'approved') statusBadge = `<span class="bg-emerald-950/30 text-emerald-400 border border-emerald-900/30 px-2 py-0.5 rounded text-[10px] font-bold">APPROVED</span>`;
+            else if (row.status === 'rejected') statusBadge = `<span class="bg-red-950/30 text-red-400 border border-red-900/30 px-2 py-0.5 rounded text-[10px] font-bold">REJECTED</span>`;
+            else statusBadge = `<span class="bg-yellow-950/30 text-yellow-400 border border-yellow-900/30 px-2 py-0.5 rounded text-[10px] font-bold">PENDING</span>`;
+
+            const card = document.createElement('div');
+            card.className = 'bg-gray-950 border border-gray-900 rounded-2xl p-5 hover:border-gray-700 transition-all duration-300';
+            card.innerHTML = `
+             <div class="bg-black/60 p-3 rounded-xl border border-gray-900 mb-4 flex justify-between items-center group">
+        <div>
+           <p class="text-gray-500 text-[9px] uppercase font-mono mb-0.5">UTR Reference</p>
+           <p class="text-emerald-400 font-mono text-[11px] tracking-wider font-bold">${row.utr_number}</p>
+        </div>
+        <button onclick="copyUTR('${row.utr_number}')" 
+            class="bg-gray-900 hover:bg-emerald-600/20 text-gray-400 hover:text-emerald-400 p-2 rounded-lg transition-all cursor-pointer border border-gray-800"
+            title="Copy UTR">
+            📋
+        </button>
+    </div>
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h3 class="text-white font-bold text-sm tracking-tight">${row.full_name || 'Anonymous'}</h3>
+                  <p class="text-gray-500 text-[10px] font-mono mt-1">+91 ${row.user_mobile}</p>
+                </div>
+                <div class="text-xl">${statusIcon}</div>
+              </div>
+              <div class="bg-black/40 p-3 rounded-xl border border-gray-900 mb-4 flex justify-between items-center">
+                <div>
+                   <p class="text-gray-500 text-[9px] uppercase font-mono mb-1">UTR Reference</p>
+                   <p class="text-white font-mono text-[11px] tracking-wider">${row.utr_number}</p>
+                </div>
+                <button onclick="copyUTR('${row.utr_number}')" class="text-gray-500 hover:text-white cursor-pointer p-1">📋</button>
+              </div>
+              <div class="flex justify-between items-end">
+                <div>
+                  <p class="text-gray-500 text-[9px] uppercase font-mono">Amount</p>
+                  <p class="text-amber-500 font-bold text-lg font-mono">₹${parseFloat(row.amount).toFixed(2)}</p>
+                </div>
+                <div>${statusBadge}</div>
+              </div>
+              <button onclick='openDepositModal(${JSON.stringify(row)})' 
+                class="mt-5 w-full bg-gray-900 hover:bg-red-950/40 border border-gray-800 hover:border-red-900/30 py-3 rounded-xl text-gray-400 hover:text-red-400 text-[10px] font-mono transition cursor-pointer uppercase tracking-widest">
+                Review & Verify
+              </button>
+            `;
+            container.appendChild(card);
+          });
+        }
+      }
+
+      function openDepositModal(row) {
+          const content = document.getElementById('deposit-modal-content');
+          console.log(row);
+          const fileSrc = row.screenshot_url.startsWith('http') || row.screenshot_url.startsWith('/uploads')
+              ? row.screenshot_url
+              : `${api.BASE_URL.replace('/api', '')}/uploads/deposits/${row.screenshot_url.split('/').pop()}`;
+
+          content.innerHTML = `
+            <div class="space-y-4">
+                <div class="rounded-xl overflow-hidden border border-gray-800 bg-black">
+                   <a href="${fileSrc}" target="_blank">
+                      <img src="${fileSrc}" class="w-full h-auto max-h-80 object-contain hover:scale-105 transition-transform duration-500" alt="Payment Proof">
+                   </a>
+                   <p class="text-center py-2 text-gray-500 text-[9px] font-mono bg-gray-900">Click image to expand in new tab</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 font-mono text-[11px]">
+                    <div class="bg-black/40 p-3 rounded-xl border border-gray-900">
+                        <span class="text-gray-500 block text-[9px] uppercase mb-1">User</span>
+                        <span class="text-white">${row.user_full_name || 'N/A'}</span>
+                    </div>
+                    <div class="bg-black/40 p-3 rounded-xl border border-gray-900">
+                        <span class="text-gray-500 block text-[9px] uppercase mb-1">Amount</span>
+                        <span class="text-amber-400 font-bold">₹${parseFloat(row.amount).toFixed(2)}</span>
+                    </div>
+                    <div class="bg-black/40 p-3 rounded-xl border border-gray-900 col-span-2">
+                        <span class="text-gray-500 block text-[9px] uppercase mb-1">UTR Number</span>
+                        <span class="text-white tracking-widest">${row.utr_number}</span>
+                    </div>
+                </div>
+                
+                ${row.status === 'pending' ? `
+                <div class="flex gap-3 pt-2">
+                    <button onclick="approveDirect('${row.id}')" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition uppercase cursor-pointer">Approve Deposit</button>
+                    <button onclick="openRejectModal('${row.id}')" class="flex-1 py-3 bg-red-900 hover:bg-red-800 text-white rounded-xl font-bold text-xs transition uppercase cursor-pointer">Reject</button>
+                </div>
+                ` : `
+                <div class="p-3 bg-gray-900/50 border border-gray-800 rounded-lg text-center text-gray-500 text-[10px] uppercase font-bold tracking-widest">
+                    This request is already ${row.status}
+                </div>
+                `}
+            </div>
+          `;
+          document.getElementById('deposit-modal').classList.remove('hidden');
+          document.getElementById('deposit-modal').classList.add('flex');
+      }
+
+      function closeDepositModal() {
+          document.getElementById('deposit-modal').classList.add('hidden');
+          document.getElementById('deposit-modal').classList.remove('flex');
+      }
+
+      async function approveDirect(id) {
+        if (!confirm('Verify screenshot manually before approving. Are you sure?')) return;
+        const res = await api.approveDeposit(id);
+        if (res.success) {
+          api.showToast('success', 'Deposit Approved Successfully');
+          closeDepositModal();
+          syncData();
+        }
+      }
+
+      function openRejectModal(id) {
+        closeDepositModal();
+        document.getElementById('modal-target-id').value = id;
+        document.getElementById('modal-reject-note').value = '';
+        const modal = document.getElementById('reject-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+
+      function closeRejectModal() {
+        const modal = document.getElementById('reject-modal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+      }
+
+      async function submitRejectForm() {
+        const id = document.getElementById('modal-target-id').value;
+        const note = document.getElementById('modal-reject-note').value.trim();
+        if (note.length < 4) {
+          api.showToast('error', 'Provide a valid reason');
+          return;
+        }
+        const res = await api.rejectDeposit(id, note);
+        if (res.success) {
+          api.showToast('success', 'Deposit Rejected');
+          closeRejectModal();
+          syncData();
+        }
+      }
+
+      function handleAdminLogout() {
+        localStorage.clear();
+        window.location.href = 'admin-login.html';
+      }
+
+      window.addEventListener('DOMContentLoaded', syncData);
+    </script>
+  </body>
+</html>

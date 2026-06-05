@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Profile & Statistics - Dragon vs Tiger Casino</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .display-font {
+        font-family: 'Space Grotesk', sans-serif;
+      }
+      .mono-font {
+        font-family: 'JetBrains Mono', sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-[#0b0c14] text-gray-100 min-h-screen flex flex-col justify-between overflow-x-hidden">
+    
+    <!-- Outer ambient top glowing light -->
+    <div class="absolute top-0 left-0 w-full h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/10 via-[#08090f] to-transparent pointer-events-none z-0"></div>
+
+    <header class="border-b border-gray-800/60 bg-black/50 backdrop-blur-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="/game.html" class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-red-650 to-amber-505 flex items-center justify-center border border-amber-500/20 shadow-lg">
+            <span class="text-xl">👤</span>
+          </div>
+          <div>
+            <h1 class="text-md  font-bold tracking-tight display-font text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-400">
+              USER CABINET
+            </h1>
+            <p class="text-[9px] text-amber-500/60 font-mono tracking-wider uppercase">Self Statistics & Referral Metrics</p>
+          </div>
+        </a>
+
+        <!-- Desktop navigation -->
+        <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-400">
+          <a href="/game.html" class="hover:text-white transition">Lobby</a>
+          <a href="/deposit.html" class="hover:text-white transition">Deposit</a>
+          <a href="/withdraw.html" class="hover:text-white transition">Withdraw</a>
+          <a href="/profile.html" class="text-amber-500">Profile</a>
+          <a href="/support.html" class="hover:text-white transition">Support</a>
+        </nav>
+
+        <div class="bg-gray-900 border border-amber-500/10 px-4 py-2 rounded-xl flex items-center gap-2">
+          <span class="text-amber-500 text-sm">🪙</span>
+          <div>
+            <p class="text-[8px] text-gray-500 font-mono uppercase tracking-wider">Your Balance</p>
+            <p id="wallet-balance" class="text-amber-400 text-sm font-bold font-mono">₹0.00</p>
+          </div>
+        </div>
+      </div>
+      <!-- Mobile navigation bar -->
+      <div class="md:hidden flex justify-around border-t border-gray-800/40 bg-black/60 py-2.5 text-xs text-gray-400 font-medium">
+        <a href="/game.html" class="hover:text-white transition">Lobby</a>
+        <a href="/deposit.html" class="hover:text-white transition">Deposit</a>
+        <a href="/withdraw.html" class="hover:text-white transition">Withdraw</a>
+        <a href="/profile.html" class="text-amber-500">Profile</a>
+        <a href="/support.html" class="hover:text-white transition">Support</a>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-5xl w-full mx-auto p-6 md:grid md:grid-cols-5 md:gap-8 items-start relative z-10 space-y-8 md:space-y-0">
+      
+      <!-- PROFILE EDIT & STATS COUNTERS -->
+      <div class="md:col-span-3 space-y-6">
+        
+        <!-- DISPLAY NAME SETTINGS EDIT CARD -->
+        <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-6 md:p-8 backdrop-blur-md relative overflow-hidden">
+          <h2 class="text-[11px] uppercase font-mono tracking-widest text-amber-500/80 mb-4 font-bold">Cabinet Configurations</h2>
+          
+          <form id="form-profile" onsubmit="handleProfileUpdate(event)" class="space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[11px] uppercase font-mono tracking-wider text-gray-500 mb-2">Display name</label>
+                <input type="text" id="profile-name" placeholder="Enter display name" required
+                       class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-xs outline-none transition text-white placeholder-gray-700 font-sans focus:ring-1 focus:ring-amber-500/10" />
+              </div>
+              <div>
+                <label class="block text-[11px] uppercase font-mono tracking-wider text-gray-500 mb-2">Registered Mobile</label>
+                <input type="tel" id="profile-mobile" disabled
+                       class="w-full bg-black/30 border border-gray-900 rounded-xl py-3 px-4 text-xs select-none transition text-gray-600 font-mono cursor-not-allowed" />
+              </div>
+            </div>
+
+            <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-black text-xs font-bold font-mono tracking-widest rounded-xl transition duration-300 shadow-xl cursor-pointer">
+              UPDATE PROFILE PREFERENCES
+            </button>
+          </form>
+        </div>
+
+        <!-- STATISTICS BENTO METRIC CARDS -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <!-- Total turnover-->
+          <div class="bg-gray-900/40 border border-gray-850 p-5 rounded-2xl flex flex-col justify-between">
+            <p class="text-[10px] uppercase font-mono tracking-wider text-gray-500">Total Playturn</p>
+            <p id="stat-turnover" class="text-xl md:text-2xl font-bold font-mono text-white mt-1">₹0.00</p>
+          </div>
+          <!-- Win ratio -->
+          <!-- <div class="bg-gray-900/40 border border-gray-850 p-5 rounded-2xl flex flex-col justify-between">
+            <p class="text-[10px] uppercase font-mono tracking-wider text-gray-500">Recorded Bets</p>
+            <p id="stat-bets" class="text-xl md:text-2xl font-bold font-mono text-emerald-400 mt-1">0</p>
+          </div> -->
+          <!-- Streak bonus-->
+          <div class="bg-gray-900/40 border border-gray-850 p-5 rounded-2xl flex flex-col justify-between">
+            <p class="text-[10px] uppercase font-mono tracking-wider text-gray-500">Won Bets</p>
+            <p id="stat-won" class="text-xl md:text-2xl font-bold font-mono text-amber-500 mt-1">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- REFERRAL AND PARTNERSHIP SYSTEM LISTS -->
+      <div class="md:col-span-2 space-y-6">
+        
+        <!-- MY REFERRAL LINK DISPLAY CARD -->
+        <div class="bg-gradient-to-br from-gray-950 to-gray-900 border border-amber-500/20 rounded-2xl p-6 text-center space-y-4">
+          <div class="h-12 w-12 rounded-full col-span-1 border border-amber-500/20 bg-amber-500/5 flex items-center justify-center text-xl mx-auto">🤝</div>
+          <div>
+            <h3 class="text-sm font-semibold display-font text-white">REFERRAL PROGRAM BONUS</h3>
+            <p class="text-[10px] text-gray-500 mt-1">Share link with friends and earn ₹50 reward for each signup.</p>
+          </div>
+
+          <!-- Referral input box split -->
+          <div class="bg-black/60 p-3 rounded-xl border border-gray-850 flex items-center justify-between gap-1.5 overflow-hidden">
+            <span id="ref-link-field" class="text-[10px] text-amber-400 font-mono text-left select-all overflow-hidden text-ellipsis whitespace-nowrap">--</span>
+            <button onclick="copyReferralLink()" class="text-xs text-gray-400 hover:text-white font-mono shrink-0 active:scale-95 transition">Copy</button>
+          </div>
+        </div>
+
+        <!-- REFERRED PARTNERS LIST -->
+        <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-6 backdrop-blur-md">
+          <h2 class="text-xs uppercase font-mono tracking-widest text-amber-500/80 mb-4 flex justify-between items-center">
+            <span>Referred Clients</span>
+            <span class="text-gray-500">My List</span>
+          </h2>
+
+          <div id="referrals-list" class="space-y-2.5 max-h-[300px] overflow-y-auto">
+            <!-- Dynamic referred partners lines loaded from database -->
+            <p class="text-xs text-gray-550 font-mono py-4 text-center">No referred clients linked yet.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="border-t border-gray-850 bg-black/60 py-6 mt-12">
+      <div class="max-w-7xl mx-auto px-6 text-center text-xs text-gray-500 font-mono">
+        <p>&copy; 2026 Fairness statistics verified under cryptographic hashes.</p>
+      </div>
+    </footer>
+
+    <!-- API Client Scripts -->
+    <script src="/js/api.js"></script>
+    <script>
+      let userCode = '';
+
+      // Verify active credentials on mount
+      const checkAuth = () => {
+        const token = localStorage.getItem('dvt_token');
+        if (!token) {
+          window.location.href = 'login.html';
+        }
+      };
+      
+      window.addEventListener('DOMContentLoaded', checkAuth);
+
+      // Copy refer mechanism
+      function copyReferralLink() {
+        const text = document.getElementById('ref-link-field').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+          api.showToast('success', 'Referral link copied successfully!');
+        });
+      }
+
+      // Sync and download Cabinet metrics
+      async function syncCabinet() {
+        // Balance
+        const balanceRes = await api.getBalance();
+        if (balanceRes.success) {
+          document.getElementById('wallet-balance').innerText = `₹${parseFloat(balanceRes.data.wallet_balance).toFixed(2)}`;
+        }
+
+        // Profile details
+        const profile = await api.getProfile();
+        if (profile.success) {
+          document.getElementById('profile-name').value = profile.data.full_name;
+          document.getElementById('profile-mobile').value = `+91 ${profile.data.mobile}`;
+          
+          userCode = profile.data.referral_code || '';
+          const fullLink = `${window.location.origin}/login.html?ref=${userCode}`;
+          document.getElementById('ref-link-field').innerText = fullLink;
+        }
+
+        // Game Stats
+        const stats = await api.getStats();
+        if (stats.success && stats.data) {
+          document.getElementById('stat-bets').innerText = stats.data.total_bets || 0;
+          document.getElementById('stat-won').innerText = stats.data.won_bets || 0;
+          document.getElementById('stat-turnover').innerText = `₹${parseFloat(stats.data.total_turnover || 0).toFixed(2)}`;
+        }
+
+        // Referrals logs list
+        const refList = await api.getReferrals();
+        if (refList.success) {
+          const listContainer = document.getElementById('referrals-list');
+          listContainer.innerHTML = '';
+
+          if (refList.data.length === 0) {
+            listContainer.innerHTML = `<p class="text-xs text-gray-550 font-mono py-4 text-center">No referred accounts matched.</p>`;
+            return;
+          }
+
+          refList.data.forEach(client => {
+            const dateStr = new Date(client.created_at).toLocaleDateString();
+            const item = document.createElement('div');
+            item.className = 'bg-black/40 border border-gray-850 p-3 rounded-lg flex items-center justify-between text-xs font-mono';
+            
+            item.innerHTML = `
+              <div class="space-y-0.5">
+                <p class="font-semibold text-gray-200">${client.full_name || 'Anonymous User'}</p>
+                <p class="text-[10px] text-gray-550">Joined: ${dateStr}</p>
+              </div>
+              <div class="flex flex-col items-end">
+                <span class="text-emerald-400 font-bold">+₹${parseFloat(client.bonus_amount || 50).toFixed(0)}</span>
+                <span class="text-[9px] text-gray-500">Bonus</span>
+              </div>
+            `;
+            listContainer.appendChild(item);
+          });
+        }
+      }
+
+      // Update configuration details
+      async function handleProfileUpdate(e) {
+        e.preventDefault();
+        const display_name = document.getElementById('profile-name').value.trim();
+
+        const res = await api.updateProfile({ full_name: display_name });
+        if (res.success) {
+          api.showToast('success', 'Preferences updated successfully!');
+          syncCabinet();
+        } else {
+          // Toast errors managed by apiCall
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', syncCabinet);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Users - Administrative Console</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .display-font {
+        font-family: 'Space Grotesk', sans-serif;
+      }
+      .mono-font {
+        font-family: 'JetBrains Mono', sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-[#05060a] text-gray-200 min-h-screen flex flex-col md:flex-row overflow-x-hidden">
+
+    <!-- Admin Side Panels Navigation -->
+    <aside class="w-full md:w-64 bg-gray-950 border-b md:border-b-0 md:border-r border-red-950/20 px-6 py-6 flex flex-col justify-between shrink-0">
+      <div class="space-y-8">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-red-650 to-red-950 flex items-center justify-center border border-red-500/20">
+            <span class="text-lg">⚙️</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold tracking-tight display-font text-white uppercase font-bold">Platform Master</h2>
+            <p class="text-[9px] text-red-500/60 font-mono tracking-widest uppercase">Admin Terminal</p>
+          </div>
+        </div>
+
+        <nav class="flex flex-col gap-1 text-xs font-semibold font-mono tracking-wider">
+          <a href="/admin-dashboard.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition font-sans">
+            <span>📊</span> Dashboard Overview
+          </a>
+          <a href="/admin-deposits.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+            <span>📥</span> Inflow Deposits
+            <span id="nav-pending-deposits-badge" class="ml-auto bg-red-900/40 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded text-[8px] hidden">-</span>
+          </a>
+          <a href="/admin-withdrawals.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+            <span>📤</span> Outflow Withdraws
+            <span id="nav-pending-withdrawals-badge" class="ml-auto bg-yellow-905/40 text-yellow-500 border border-yellow-500/20 px-1.5 py-0.5 rounded text-[8px] hidden">-</span>
+          </a>
+          <a href="/admin-users.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl bg-red-950/30 text-red-400 border border-red-900/30">
+            <span>👥</span> Users Controller
+          </a>
+          <a href="/admin-settings.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+            <span>⚙️</span> System Settings
+          </a>
+          <a href="/admin-tickets.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition font-mono">
+            <span>💬</span> Support Tickets
+          </a>
+        </nav>
+      </div>
+
+      <div class="border-t border-red-950/20 pt-6 mt-8 flex flex-col gap-3">
+        <div class="flex items-center gap-3">
+          <div class="h-8 w-8 rounded-full bg-red-950/40 border border-red-500/20 flex items-center justify-center text-xs">🔒</div>
+          <div>
+            <p id="admin-name" class="text-[11px] font-semibold text-white">System Admin</p>
+            <p class="text-[9px] text-gray-500 font-mono uppercase font-medium">Full Access Granted</p>
+          </div>
+        </div>
+        <button onclick="handleAdminLogout()" class="w-full py-2.5 bg-gray-900 hover:bg-red-950/40 text-gray-400 hover:text-red-555 border border-gray-855 hover:border-red-950/30 rounded-xl text-[10px] font-mono transition tracking-wider text-center cursor-pointer font-bold">
+          CLOSE Master Session
+        </button>
+      </div>
+    </aside>
+
+    <!-- CONTENT BODY AREA -->
+    <main class="flex-1 p-6 md:p-10 space-y-8 min-w-0 font-mono">
+      
+      <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-gray-900">
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white display-font uppercase">USERS CONTROLLER TERMINAL</h1>
+          <p class="text-gray-400 text-xs font-mono mt-1">Search players, view details, ban accounts, or credit balance adjustments.</p>
+        </div>
+      </section>
+
+      <!-- SEARCH FILTER BAR -->
+      <section class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-gray-950/40 border border-gray-900 p-4 rounded-xl">
+        <div class="relative w-full sm:max-w-md">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-550">🔍</span>
+          <input type="text" id="search-input" oninput="debounceSearch()" placeholder="Search by name, profile mobile, refer code..." 
+                 class="w-full bg-black/40 border border-gray-800 focus:border-red-500/40 rounded-lg py-2 pl-10 pr-4 text-xs outline-none transition text-white placeholder-gray-600 focus:ring-1 focus:ring-red-500/10 font-sans" />
+        </div>
+      </section>
+
+      <!-- RESULTS LEDGER TABLE -->
+      <section class="overflow-x-auto border border-gray-900 rounded-2xl bg-gray-950/30">
+        <table class="w-full text-left text-xs border-collapse font-mono">
+          <thead>
+            <tr class="border-b border-gray-900 bg-black/40 text-gray-400 font-bold">
+              <th class="p-4">UID</th>
+              <th class="p-4">Full Name</th>
+              <th class="p-4">Mobile No.</th>
+              <th class="p-4">Wallet Balance</th>
+              <th class="p-4">Refer Code</th>
+              <th class="p-4">Status / BAN</th>
+              <th class="p-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-table-body">
+            <tr>
+              <td colspan="7" class="p-8 text-center text-gray-500">Retrieving account nodes ledger...</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <!-- USER OVERVIEW AND ADJUSTMENTS CARD DETAILS MODAL -->
+    <div id="details-modal" class="fixed inset-0 bg-black/85 backdrop-blur-xs hidden items-center justify-center z-50 transition-opacity">
+      <div class="bg-gray-950 border border-red-950/40 p-6 md:p-8 rounded-2xl max-w-lg w-full space-y-6 max-h-[90vh] overflow-y-auto font-mono text-xs text-left">
+        
+        <div class="flex justify-between items-start border-b border-gray-900 pb-4">
+          <div>
+            <h3 class="text-sm font-bold display-font text-white uppercase" id="modal-title-fullname">--</h3>
+            <p class="text-[10px] text-gray-500 font-mono" id="modal-subtitle-uid">UID: --</p>
+          </div>
+          <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-white font-bold cursor-pointer">✕</button>
+        </div>
+
+        <!-- Details Info Grid -->
+        <div class="grid grid-cols-2 gap-4 pb-4 border-b border-gray-900">
+          <div>
+            <p class="text-[10px] uppercase font-mono tracking-widest text-gray-500">Current Wallet Balance</p>
+            <p class="text-lg font-extrabold text-amber-500 mt-0.5" id="modal-card-balance">₹0.00</p>
+          </div>
+          <div>
+            <p class="text-[10px] uppercase font-mono tracking-widest text-gray-500">Status Verification</p>
+            <p class="text-xs font-semibold mt-1" id="modal-card-status">Active / Clean</p>
+          </div>
+          <div>
+            <p class="text-[10px] uppercase font-mono tracking-widest text-gray-500">Referral Code</p>
+            <p class="text-xs font-semibold mt-1" id="modal-card-refer">--</p>
+          </div>
+          <div>
+            <p class="text-[10px] uppercase font-mono tracking-widest text-gray-500">Referred By UID</p>
+            <p class="text-xs font-semibold mt-1" id="modal-card-referrer">None</p>
+          </div>
+        </div>
+
+        <!-- BALANCE ADJUSTMENT WRAPPER -->
+        <div class="space-y-4">
+          <h4 class="text-[10px] uppercase font-mono tracking-wider text-red-500 font-bold block">Credit Audit / Balance Adjustment Form</h4>
+          
+          <form id="form-adjustment" onsubmit="handleAdjustmentSubmit(event)" class="space-y-4 bg-black/40 p-4 rounded-xl border border-gray-850">
+            <input type="hide" id="adjustment-user-id" />
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[10px] text-gray-400 mb-1">Adjustment Amount (₹)</label>
+                <!-- Allow positive/negative adjustments securely -->
+                <input type="number" id="adjust-amount" step="0.01" placeholder="e.g. 500 or -200" required
+                       class="w-full bg-black border border-gray-800 focus:border-red-500/40 rounded-lg py-2 px-3 text-xs outline-none text-white font-mono focus:ring-1 focus:ring-red-500/10" />
+              </div>
+              <div class="relative">
+                <label class="block text-[10px] text-gray-400 mb-1">Verification Note</label>
+                <input type="text" id="adjust-note" placeholder="Reason for change" required
+                       class="w-full bg-black border border-gray-800 focus:border-red-500/40 rounded-lg py-2 px-3 text-xs outline-none text-white font-sans focus:ring-1 focus:ring-red-500/10" />
+              </div>
+            </div>
+
+            <button type="submit" class="w-full py-2.5 bg-red-950/60 hover:bg-red-900 border border-red-500/20 text-red-400 hover:text-white text-xs font-bold font-mono tracking-wide rounded-lg transition duration-200 cursor-pointer">
+              EXECUTE BALANCE ADJUSTMENT RECORD
+            </button>
+          </form>
+        </div>
+
+        <div class="flex gap-4 border-t border-gray-900 pt-4 justify-between">
+          <button id="modal-ban-btn" onclick="toggleBanDirect()" class="px-4 py-2 bg-red-950/80 hover:bg-red-800 text-red-400 hover:text-white border border-red-750 rounded-lg transition">
+            BAN ACCOUNT
+          </button>
+          <button onclick="closeDetailsModal()" class="px-4 py-2 bg-gray-900 border border-gray-850 rounded-lg text-gray-300 hover:text-white transition">
+            Close Panel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Client Scripts -->
+    <script src="/js/api.js"></script>
+    <script>
+      let currentSearch = '';
+      let currentPage = 1;
+      let searchTimeout = null;
+
+      // Access verification
+      const requireAdmin = () => {
+        const token = localStorage.getItem('dvt_admin_token');
+        if (!token) {
+          window.location.href = 'admin-login.html';
+        }
+      };
+      
+      window.addEventListener('DOMContentLoaded', requireAdmin);
+
+      function debounceSearch() {
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          currentSearch = document.getElementById('search-input').value.trim();
+          currentPage = 1;
+          syncUsersTable();
+        }, 350);
+      }
+
+      // Sync and load user lists
+      async function syncUsersTable() {
+        const adminUser = localStorage.getItem('dvt_admin_user');
+        if (adminUser) {
+          document.getElementById('admin-name').innerText = JSON.parse(adminUser).full_name || 'System Admin';
+        }
+
+        const res = await api.getUsers(currentSearch, currentPage);
+        console.log('User List Response:', res);
+        if (res.success) {
+          const tbody = document.getElementById('users-table-body');
+          tbody.innerHTML = '';
+
+          if (res.data.users.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-gray-550 italic">No customer profiles fit search terms.</td></tr>`;
+            return;
+          }
+
+          res.data.users.forEach(user => {
+            const statusLabel = user.is_banned 
+              ? `<span class="bg-red-950/40 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">BANNED</span>`
+              : `<span class="bg-emerald-950/40 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded text-[10px] font-bold">ACTIVE</span>`;
+
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-gray-905/40 hover:bg-gray-955/20 cursor-pointer';
+            tr.onclick = (e) => {
+              // Exclude direct button clicks inside tr
+              if (e.target.tagName !== 'BUTTON') {
+                openDetailsModal(user.id);
+              }
+            };
+            
+            tr.innerHTML = `
+              <td class="p-4 text-gray-550">#USR_${user.id}</td>
+              <td class="p-4 font-bold text-white max-w-[150px] truncate">${user.full_name}</td>
+              <td class="p-4 select-all">+91 ${user.mobile}</td>
+              <td class="p-4 text-amber-500 font-bold">₹${parseFloat(user.wallet_balance).toFixed(2)}</td>
+              <td class="p-4 select-all text-gray-400 font-normal">${user.referral_code}</td>
+              <td class="p-4">${statusLabel}</td>
+              <td class="p-4 text-right">
+                <button onclick="openDetailsModal(${user.id})" class="px-2.5 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-850 hover:border-gray-800 rounded transition text-[10px]">Audit File</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      }
+
+      // Details Modal Coordination
+      async function openDetailsModal(id) {
+        const res = await api.getUserDetail(id);
+        
+        if (res.success && res.data) {
+          const user = res.data;
+          console.log('User Detail Response:', user);
+          console.log('Opening details modal for user ID:', user.user.id);
+          
+          document.getElementById('adjustment-user-id').value = user.user.id;
+          document.getElementById('modal-title-fullname').innerText = user.user.full_name;
+          document.getElementById('modal-subtitle-uid').innerText = user.user.id;
+          document.getElementById('modal-card-balance').innerText = `₹${parseFloat(user.user.wallet_balance).toFixed(2)}`;
+          // document.getElementById('modal-card-refer').innerText = user.referral_code;
+          document.getElementById('modal-card-referrer').innerText = user.referred_by ? `#USR_${user.referred_by}` : 'Organic Signup (None)';
+
+          const statusBadge = user.is_banned 
+            ? `<span class="text-red-500 font-bold">BANNED ACCOUNT</span>` 
+            : `<span class="text-emerald-400 font-bold">ACTIVE & CLEAN</span>`;
+          document.getElementById('modal-card-status').innerHTML = statusBadge;
+
+          const banBtn = document.getElementById('modal-ban-btn');
+          if (user.is_banned) {
+            banBtn.innerText = 'UNBAN ACCOUNT';
+            banBtn.className = 'px-4 py-2 bg-emerald-950 text-emerald-400 border border-emerald-500/20 rounded-lg hover:bg-emerald-900 hover:text-white transition cursor-pointer';
+          } else {
+            banBtn.innerText = 'BAN ACCOUNT';
+            banBtn.className = 'px-4 py-2 bg-red-950/80 hover:bg-red-800 text-red-500 hover:text-white border border-red-750 rounded-lg transition cursor-pointer';
+          }
+
+          // Reset Form
+          document.getElementById('form-adjustment').reset();
+
+          const modal = document.getElementById('details-modal');
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        }
+      }
+
+      function closeDetailsModal() {
+        const modal = document.getElementById('details-modal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+      }
+
+      async function toggleBanDirect() {
+        const id = document.getElementById('modal-subtitle-uid').textContent;
+        if (!confirm('Are you legally certain to execute this block/unblock status adjustment?')) return;
+
+        const res = await api.banUser(id);
+        console.log('id',id);
+        if (res.success) {
+          api.showToast('success', res.message || 'Status locked successfully.');
+          // Re-open/refresh details
+          openDetailsModal(id);
+          syncUsersTable();
+        }
+      }
+
+      async function handleAdjustmentSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById('adjustment-user-id').value;
+        const amount = parseFloat(document.getElementById('adjust-amount').value);
+        const note = document.getElementById('adjust-note').value.trim();
+
+        if (isNaN(amount) || amount === 0) {
+          api.showToast('error', 'Please enter a valid non-zero adjustment balance.');
+          return;
+        }
+        if (note.length < 3) {
+          api.showToast('error', 'Please supply a clear auditing note.');
+          return;
+        }
+
+        const res = await api.addUserBalance(id, amount, note);
+        if (res.success) {
+          api.showToast('success', 'Balance adjustment approved in logging directory!');
+          openDetailsModal(id);
+          syncUsersTable();
+        }
+      }
+
+      function handleAdminLogout() {
+        localStorage.removeItem('dvt_admin_token');
+        localStorage.removeItem('dvt_admin_user');
+        window.location.href = 'admin-login.html';
+      }
+
+      window.addEventListener('DOMContentLoaded', syncUsersTable);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deposit Funds - Dragon vs Tiger Casino</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .display-font {
+        font-family: 'Space Grotesk', sans-serif;
+      }
+      .mono-font {
+        font-family: 'JetBrains Mono', sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-[#0b0c14] text-gray-100 min-h-screen flex flex-col justify-between overflow-x-hidden">
+    
+    <!-- Outer ambient top lights -->
+    <div class="absolute top-0 left-0 w-full h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-950/10 via-[#08090f] to-transparent pointer-events-none z-0"></div>
+
+    <header class="border-b border-gray-800/60 bg-black/50 backdrop-blur-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="/game.html" class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-red-650 to-amber-505 flex items-center justify-center border border-amber-500/20 shadow-lg">
+            <span class="text-xl">💰</span>
+          </div>
+          <div>
+            <h1 class="text-md font-bold tracking-tight display-font text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-400">
+              DEPOSIT SYSTEM
+            </h1>
+            <p class="text-[9px] text-amber-500/60 font-mono tracking-wider uppercase">Instant Wallet Refills</p>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation links -->
+        <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-400">
+          <a href="/game.html" class="hover:text-white transition">Lobby</a>
+          <a href="/deposit.html" class="text-amber-500">Deposit</a>
+          <a href="/withdraw.html" class="hover:text-white transition">Withdraw</a>
+          <a href="/profile.html" class="hover:text-white transition">Profile</a>
+          <a href="/support.html" class="hover:text-white transition">Support</a>
+        </nav>
+
+        <div class="bg-gray-900 border border-amber-500/10 px-4 py-2 rounded-xl flex items-center gap-2">
+          <span class="text-amber-500 text-sm">🪙</span>
+          <div>
+            <p class="text-[8px] text-gray-500 font-mono uppercase tracking-wider">Your Balance</p>
+            <p id="wallet-balance" class="text-amber-400 text-sm font-bold font-mono">₹0.00</p>
+          </div>
+        </div>
+      </div>
+      <!-- Mobile Navigation Bar -->
+      <div class="md:hidden flex justify-around border-t border-gray-800/40 bg-black/60 py-2.5 text-xs text-gray-400 font-medium">
+        <a href="/game.html" class="hover:text-white transition">Lobby</a>
+        <a href="/deposit.html" class="text-amber-500">Deposit</a>
+        <a href="/withdraw.html" class="hover:text-white transition">Withdraw</a>
+        <a href="/profile.html" class="hover:text-white transition">Profile</a>
+        <a href="/support.html" class="hover:text-white transition">Support</a>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-5xl w-full mx-auto p-6 md:grid md:grid-cols-5 md:gap-8 items-start relative z-10 space-y-8 md:space-y-0">
+      
+      <!-- PAYMENT INGRESS SIDE (QR + DETAILS FORM) -->
+      <div class="md:col-span-3 space-y-6">
+        <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-6 md:p-8 space-y-6 relative overflow-hidden backdrop-blur-md">
+          <div class="absolute inset-0 bg-gradient-to-r from-red-500/5 to-amber-500/5 pointer-events-none"></div>
+
+          <div class="relative z-10">
+            <h2 class="text-lg font-bold display-font text-white tracking-wide">SECURE UPI CHECKOUT PORTAL</h2>
+            <p class="text-xs text-gray-400 font-mono mt-1">Refill is processed securely within 5-15 minutes.</p>
+          </div>
+
+          <!-- QR & DEPOSIT INSTRUCTIONS Split -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+            
+            <div class="bg-white p-3.5 rounded-2xl flex flex-col items-center justify-center max-w-[200px] mx-auto shadow-2xl border border-amber-500/10">
+              <!-- Live UPI QR Code Generator from qrserver API -->
+              <img id="upi-qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=pay@dragonvstiger&pn=CasinoRewards" 
+                   alt="UPI QR Scanner" class="w-full aspect-square bg-gray-50 rounded-lg p-1" referrerPolicy="no-referrer" />
+              <p class="text-[10px] text-gray-800 font-bold font-sans tracking-wide uppercase mt-2">Scan & Pay Securely</p>
+            </div>
+
+            <div class="space-y-4">
+              <div class="bg-black/40 border border-gray-800/50 p-4 rounded-xl space-y-2">
+                <p class="text-[10px] uppercase font-mono tracking-wider text-gray-500">Official UPI Address</p>
+                <div class="flex items-center justify-between gap-2 bg-black/60 p-2.5 rounded-lg border border-gray-950">
+                  <span id="upi-id-text" class="text-amber-400 font-mono text-xs select-all">pay@dragonvstiger</span>
+                  <button onclick="copyUpiId()" class="text-xs text-gray-400 hover:text-white font-mono active:scale-95 transition">Copy</button>
+                </div>
+              </div>
+
+              <div class="space-y-1.5 text-xs text-gray-400 font-medium list-decimal pl-2 space-y-1">
+                <p>1. Open standard payment app (GPAY, PhonePe, Paytm)</p>
+                <p>2. Scan QR or transfer manually to UPI address.</p>
+                <p>3. Copy the numeric transaction 12-digit UTR reference ID.</p>
+                <p>4. Upload the payment receipt screenshot below and paste the UTR id.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- FORM SUBMISSION LAYERS -->
+          <form id="form-deposit" onsubmit="handleDepositSubmit(event)" class="space-y-5 border-t border-gray-800/40 pt-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[11px] uppercase font-mono tracking-wider text-amber-500/80 mb-2">Transaction Amount (₹)</label>
+                <input type="number" id="deposit-amount" placeholder="Minimum: ₹100" min="100" required
+                       class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-xs outline-none transition text-white placeholder-gray-755 focus:ring-1 focus:ring-amber-500/10" />
+              </div>
+              <div>
+                <label class="block text-[11px] uppercase font-mono tracking-wider text-amber-500/80 mb-2">Numeric UTR Number / Ref ID</label>
+                <input type="text" id="deposit-utr" placeholder="12-digit numeric code" required minlength="12" maxlength="12"
+                       class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-xs outline-none transition text-white placeholder-gray-755 font-mono focus:ring-1 focus:ring-amber-500/10" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] uppercase font-mono tracking-wider text-amber-500/80 mb-2">Payment Screenshot Proof (Required)</label>
+              <div id="dropzone" class="border border-dashed border-gray-800 hover:border-amber-500/40 bg-black/40 rounded-xl py-8 px-6 text-center cursor-pointer transition">
+                <p class="text-xs text-gray-500 font-mono">Drag and drop screenshot clear image, or <span class="text-amber-500">browse files</span></p>
+                <p class="text-[10px] text-gray-650 mt-1">Accepted standard extensions: .png, .jpg, .jpeg (Max 5MB)</p>
+                <span id="file-name-label" class="inline-block mt-3 px-3 py-1 bg-amber-500/10 text-amber-500 rounded-lg text-[10px] font-mono hidden">--</span>
+                <input type="file" id="deposit-screenshot" class="hidden" accept="image/*" required onchange="handleFileSelected(event)" />
+              </div>
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 text-black text-xs font-bold font-mono tracking-widest rounded-xl transition duration-300 shadow-xl cursor-pointer">
+              SUBMIT REFLL VERIFICATION
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- LEDGER STATEMENT HISTORY (SIDE PANEL) -->
+      <div class="md:col-span-2 space-y-6">
+        <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-6 backdrop-blur-md">
+          <h2 class="text-xs uppercase font-mono tracking-widest text-amber-500/80 mb-4 flex justify-between items-center">
+            <span>Funding Ledger</span>
+            <span class="text-gray-500">History</span>
+          </h2>
+
+          <div id="deposits-history-list" class="space-y-3 max-h-[480px] overflow-y-auto">
+            <!-- Populates database entries -->
+            <p class="text-xs text-gray-550 font-mono py-4 text-center">No deposit history statements found.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="border-t border-gray-850 bg-black/60 py-6 mt-12">
+      <div class="max-w-7xl mx-auto px-6 text-center text-xs text-gray-500 font-mono">
+        <p>&copy; 2026 Secured Transactions Module. Double encryption active.</p>
+      </div>
+    </footer>
+
+    <!-- API Client Scripts -->
+    <script src="/js/api.js"></script>
+    <script>
+      // Verify active credentials on mount
+      const checkAuth = () => {
+        const token = localStorage.getItem('dvt_token');
+        if (!token) {
+          window.location.href = 'login.html';
+        }
+      };
+      
+      window.addEventListener('DOMContentLoaded', checkAuth);
+
+      // Setup Drag & Drop Hooks on file containers
+      const dropzone = document.getElementById('dropzone');
+      const fileInput = document.getElementById('deposit-screenshot');
+
+      dropzone.addEventListener('click', () => fileInput.click());
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('border-amber-500', 'bg-amber-500/5');
+      });
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('border-amber-500', 'bg-amber-500/5');
+      });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-amber-500', 'bg-amber-500/5');
+        
+        if (e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files;
+          updateFileNameLabel(e.dataTransfer.files[0].name);
+        }
+      });
+
+      function handleFileSelected(e) {
+        if (e.target.files.length) {
+          updateFileNameLabel(e.target.files[0].name);
+        }
+      }
+
+      function updateFileNameLabel(name) {
+        const span = document.getElementById('file-name-label');
+        span.innerText = `Selected File: ${name}`;
+        span.classList.remove('hidden');
+      }
+
+      // Copy UPI text utilities
+      function copyUpiId() {
+        const text = document.getElementById('upi-id-text').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+          api.showToast('success', 'UPI identifier copied successfully!');
+        });
+      }
+
+      // Load balance summary metrics
+      async function syncData() {
+        // Balance
+        const balanceRes = await api.getBalance();
+        if (balanceRes.success) {
+          document.getElementById('wallet-balance').innerText = `₹${parseFloat(balanceRes.data.wallet_balance).toFixed(2)}`;
+        }
+
+        // UPI Settings dynamically
+        const upiRes = await api.getUpiSettings();
+        if (upiRes.success && upiRes.data) {
+          const upiId = upiRes.data.upi_id || 'pay@dragonvstiger';
+          document.getElementById('upi-id-text').innerText = upiId;
+          
+          // Re-generate QR
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=${encodeURIComponent(upiId)}&pn=CasinoRewards`;
+          document.getElementById('upi-qr-image').src = qrUrl;
+        }
+
+        // History
+        const listRes = await api.getDepositHistory();
+        if (listRes.success) {
+          const historyBox = document.getElementById('deposits-history-list');
+          historyBox.innerHTML = '';
+
+          if (listRes.data.length === 0) {
+            historyBox.innerHTML = `<p class="text-xs text-gray-500 font-mono py-4 text-center">No deposit receipts reported yet.</p>`;
+            return;
+          }
+
+          listRes.data.forEach(item => {
+            const dateStr = new Date(item.submitted_at || item.created_at).toLocaleDateString();
+            let statusBadge = '';
+            
+            if (item.status === 'pending') {
+              statusBadge = `<span class="bg-yellow-950/40 text-yellow-500 border border-yellow-500/20 px-2 py-0.5 rounded text-[10px] font-bold">Pending</span>`;
+            } else if (item.status === 'approved') {
+              statusBadge = `<span class="bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">Approved</span>`;
+            } else if (item.status === 'rejected') {
+              statusBadge = `<span class="bg-red-950/40 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">Rejected</span>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'bg-black/40 border border-gray-850 p-3 rounded-lg flex items-center justify-between text-xs font-mono';
+            card.innerHTML = `
+              <div class="space-y-0.5">
+                <p class="font-bold text-gray-200">₹${parseFloat(item.amount).toFixed(2)}</p>
+                <p class="text-[10px] text-gray-500">UTR: ${item.utr_number}</p>
+                <p class="text-[9px] text-gray-550">${dateStr}</p>
+              </div>
+              <div class="flex flex-col items-end gap-1.5">
+                ${statusBadge}
+                ${item.admin_note ? `<p class="text-[9px] text-red-450 text-wrap max-w-[120px] text-right">Note: ${item.admin_note}</p>` : ''}
+              </div>
+            `;
+            historyBox.appendChild(card);
+          });
+        }
+      }
+
+      // Submit payment notification
+      async function handleDepositSubmit(e) {
+        e.preventDefault();
+        const amount = document.getElementById('deposit-amount').value;
+        const utr = document.getElementById('deposit-utr').value.trim();
+        const file = fileInput.files[0];
+
+        if (!file) {
+          api.showToast('error', 'Please attach a payment proof screenshot.');
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('amount', amount);
+        formData.append('utr_number', utr);
+        formData.append('screenshot', file);
+
+        const res = await api.submitDeposit(formData);
+        if (res.success) {
+          api.showToast('success', 'Refill proof submitted! Verification processing.');
+          // Reset Form
+          document.getElementById('form-deposit').reset();
+          document.getElementById('file-name-label').classList.add('hidden');
+          syncData();
+        } else {
+          // apiCall handles displaying error toasted alerts
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', syncData);
+    </script>
+  </body>
+</html>
