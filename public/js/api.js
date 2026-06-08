@@ -150,16 +150,36 @@ async function apiCall(method, endpoint, body = null, isFormData = false) {
 // ==========================================
 // 1. CLIENT AUTH OPERATIONS
 // ==========================================
-const register = async (mobile, password, full_name, referral_code) => {
-  return apiCall('POST', 'auth/register', { mobile, password, full_name, referral_code });
+const register = async (mobile, password, full_name, referral_code,otp) => {
+  return apiCall('POST', 'auth/register', { mobile, password, full_name, referral_code,otp });
+};
+
+const sendOtp = async (mobile) => {
+  return apiCall('POST', 'auth/send-otp', { mobile });
 };
 
 const login = async (mobile, password) => {
   return apiCall('POST', 'auth/login', { mobile, password });
 };
 
-const adminLogin = async (username, password) => {
-  return apiCall('POST', 'auth/admin-login', { username, password });
+const adminLogin = async (username, password,otp) => {
+  return apiCall('POST', 'auth/admin-login', { username, password, otp });
+};
+
+const adminSendOtp = async (
+  username,
+  password
+) => {
+
+  return apiCall(
+    'POST',
+    'auth/admin-send-otp',
+    {
+      username,
+      password
+    }
+  );
+
 };
 
 const getMe = async () => {
@@ -192,6 +212,12 @@ const requestWithdrawal = async (data) => {
 const getWithdrawalHistory = async () => {
   return apiCall('GET', 'wallet/withdrawals/history');
 };
+
+const getWithdrawalSettings = async () => {
+  return apiCall('GET', 'wallet/settings');
+};
+
+// window.api.getWithdrawalSettings = getWithdrawalSettings;
 
 const getUpiSettings = async () => {
   return apiCall('GET', 'wallet/settings/upi');
@@ -332,6 +358,7 @@ window.api = {
   getDepositHistory,
   requestWithdrawal,
   getWithdrawalHistory,
+  getWithdrawalSettings,
   getUpiSettings,
   getCurrentRound,
   getRecentRounds,
@@ -349,6 +376,7 @@ window.api = {
   approveDeposit,
   rejectDeposit,
   getWithdrawals,
+  adminSendOtp,
   approveWithdrawal,
   rejectWithdrawal,
   getUsers,
@@ -357,6 +385,7 @@ window.api = {
   addUserBalance,
   getSettings,
   updateSettings,
+  sendOtp,
   getTicketsAdmin,
   replyTicket
 };

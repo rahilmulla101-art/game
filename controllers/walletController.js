@@ -16,6 +16,40 @@ const getSiteSettingValue = async (key, defaultValue) => {
   return defaultValue;
 };
 
+export const getWithdrawalSettings = async (req, res) => {
+  try {
+    const minWithdrawal = await getSiteSettingValue(
+      'min_withdrawal',
+      '10'
+    );
+
+    const maxWithdrawal = await getSiteSettingValue(
+      'max_withdrawal',
+      '50000'
+    );
+     const minDeposit = await getSiteSettingValue(
+      'min_deposit',
+      '200'
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        minimum_withdrawal: parseFloat(minWithdrawal),
+        maximum_withdrawal: parseFloat(maxWithdrawal),
+        minimum_deposit: parseFloat(minDeposit)
+      }
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
 /**
  * GET /api/wallet/balance
  */
@@ -218,12 +252,12 @@ export const requestWithdrawal = async (req, res) => {
       [userId, 'pending', 'processing']
     );
 
-    if (existingPending && existingPending.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'You already have an active withdrawal request under processing. Please wait until finished.'
-      });
-    }
+    // if (existingPending && existingPending.length > 0) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: 'You already have an active withdrawal request under processing. Please wait until finished.'
+    //   });
+    // }
 
     // 2. Fetch system configuration limits
     const minWithdrawalValue = parseFloat(await getSiteSettingValue('min_withdrawal', '200'));
@@ -243,38 +277,66 @@ export const requestWithdrawal = async (req, res) => {
       });
     }
 
-    // 3. Atomically check balance and perform secure transaction deduction
-    // Wallet deduct function will explicitly throw error if insufficient funds are available.
+    // 3. Query the user's withdraw_wallet first to inspect available unlocked winnings
+    const [userRows] = await pool.query(
+      'SELECT withdraw_wallet FROM users WHERE id = ?',
+      [userId]
+    );
+
+    if (!userRows || userRows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User account not found.'
+      });
+    }
+
+    const currentWithdrawWallet = parseFloat(userRows[0].withdraw_wallet || 0);
+
+    // 4. Strict check against only withdrawable winnings column
+    if (currentWithdrawWallet < requestedAmount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Your withdraw wallet has less funds for the process. Please play and win to unlock the withdraw money.'
+      });
+    }
+
+    // 5. Conduct custom transaction logic: atomic deduction & insertion 
+    const connection = await pool.getConnection();
     try {
-      const { newBalance } = await walletService.deductBalance(
-        userId,
-        requestedAmount,
-        'withdrawal',
-        null,
-        `Pending payout withdrawal of size ₹${requestedAmount}`
+      await connection.beginTransaction();
+
+      // Deduct specifically from the withdraw_wallet column (and leave wallet_balance untouched!)
+      await connection.query(
+        'UPDATE users SET withdraw_wallet = withdraw_wallet - ? WHERE id = ?',
+        [requestedAmount, userId]
       );
 
-      // 4. Save the payout transaction requests within withdrawals table
-      const [insertResult] = await pool.query(
+      // Save the payout transaction request inside your withdrawals table
+      const [insertResult] = await connection.query(
         'INSERT INTO withdrawals (user_id, amount, upi_id, account_name, account_number, ifsc_code, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [userId, requestedAmount, upi_id || null, account_name.trim(), account_number.trim(), ifsc_code.trim(), 'pending']
       );
 
+      await connection.commit();
+
       return res.json({
         success: true,
-        message: 'Your payout withdrawal request has been logged successfully and was debited from your active balance.',
+        message: 'Your payout withdrawal request has been logged successfully and was debited from your withdraw wallet.',
         data: {
           withdrawal_id: insertResult.insertId,
           amount: requestedAmount,
-          new_balance: newBalance
+          new_withdraw_wallet: currentWithdrawWallet - requestedAmount
         }
       });
 
-    } catch (deductError) {
-      return res.status(400).json({
+    } catch (transactionError) {
+      await connection.rollback();
+      return res.status(500).json({
         success: false,
-        message: 'Could not process token debit translation: ' + deductError.message
+        message: 'Failed to write transaction updates to the database: ' + transactionError.message
       });
+    } finally {
+      connection.release();
     }
 
   } catch (error) {

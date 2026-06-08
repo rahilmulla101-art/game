@@ -67,6 +67,33 @@
     <main class="flex-1 max-w-5xl w-full mx-auto p-6 md:grid md:grid-cols-5 md:gap-8 items-start relative z-10 space-y-8 md:space-y-0">
       
       <!-- SUBMISSION DRAWER form -->
+       <div class="relative z-10">
+            <h2 class="text-lg font-bold display-font text-white tracking-wide">REQUEST PAIRED BANK DRAWER</h2>
+            <p class="text-xs text-gray-400 font-mono mt-1">Submit bank transfer routing details. Double check credentials.</p>
+          </div>
+
+          <!-- WALLET BREAKDOWN CARD WIDGET (INSERT THIS) -->
+          <div class="grid grid-cols-2 gap-4 relative z-10 p-4 bg-black/40 border border-gray-800/60 rounded-xl mt-4">
+            <!-- Game Wallet -->
+            <div class="space-y-1">
+              <span class="text-[9px] uppercase tracking-wider font-mono text-gray-500 block mb-0.5">Game Wallet</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs">🎮</span>
+                <span id="deposit-balance" class="text-sm font-bold font-mono text-gray-300">₹0.00</span>
+              </div>
+              <span class="text-[8px] text-gray-600 font-mono block">Deposits & Bonuses (Non-Withdrawable)</span>
+            </div>
+
+            <!-- Withdrawable Wallet -->
+            <div class="space-y-1 border-l border-gray-850 pl-4">
+              <span class="text-[9px] uppercase tracking-wider font-mono text-amber-500 block mb-0.5">Withdrawable Wallet</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs">💰</span>
+                <span id="withdrawable-balance" class="text-sm font-bold font-mono text-amber-400">₹0.00</span>
+              </div>
+              <span class="text-[8px] text-emerald-500/60 font-mono block">Play Winnings (Direct Bank Transfer)</span>
+            </div>
+          </div>
       <div class="md:col-span-3 space-y-6">
         <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-6 md:p-8 space-y-6 relative overflow-hidden backdrop-blur-md">
           <div class="absolute inset-x-0 h-20 bg-gradient-to-b from-amber-500/5 to-transparent pointer-events-none"></div>
@@ -153,12 +180,40 @@
 
       // Load balance summary metrics & withdrawals history list
       async function syncData() {
-        // Balance
-        const balanceRes = await api.getBalance();
-        if (balanceRes.success) {
-          document.getElementById('wallet-balance').innerText = `₹${parseFloat(balanceRes.data.wallet_balance).toFixed(2)}`;
-        }
+        let minWithdrawal ;
 
+
+async function loadWithdrawalSettings() {
+  const res = await api.getWithdrawalSettings();
+
+  if (res.success) {
+    minWithdrawal = res.data.minimum_withdrawal;
+    console.log('Minimum Withdrawal Threshold:', res.data);
+    const input = document.getElementById('withdraw-amount');
+
+    input.min = minWithdrawal;
+    input.placeholder = `Minimum threshold: ₹${minWithdrawal}`;
+  }
+}
+loadWithdrawalSettings();
+        // Balance
+     // Balance Sync
+        const balanceRes = await api.getBalance();
+        console.log('Wallet Balance:', balanceRes);
+        if (balanceRes.success) {
+            var wallet = balanceRes.data.wallet_balance.wallet_balance; // Game wallet balance
+            var gameBalance = balanceRes.data.wallet_balance.withdraw_wallet; // Withdraw wallet balance
+            var real = wallet + gameBalance; // Total sum
+            
+            console.log('wallet:', real);
+            
+            // 1. Update overall header balance
+            document.getElementById('wallet-balance').innerText = '₹' + parseFloat(real).toFixed(2);
+            
+            // 2. Update breakdown indicators at the top of the form
+            document.getElementById('deposit-balance').innerText = '₹' + parseFloat(wallet).toFixed(2);
+            document.getElementById('withdrawable-balance').innerText = '₹' + parseFloat(gameBalance).toFixed(2);
+        }
         // History
         const listRes = await api.getWithdrawalHistory();
         console.log('Withdrawal History:', listRes);

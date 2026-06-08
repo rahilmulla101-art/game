@@ -180,7 +180,11 @@
         // Balance
         const balanceRes = await api.getBalance();
         if (balanceRes.success) {
-          document.getElementById('wallet-balance').innerText = `₹${parseFloat(balanceRes.data.wallet_balance).toFixed(2)}`;
+                    var wallet= balanceRes.data.wallet_balance.wallet_balance;
+          var gameBalance = balanceRes.data.wallet_balance.withdraw_wallet;
+          var real = wallet+gameBalance;
+          console.log('wallet:', real);
+          document.getElementById('wallet-balance').innerText = real;
         }
 
         // Profile details

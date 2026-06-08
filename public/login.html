@@ -85,14 +85,57 @@
                    class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-sm outline-none transition text-white placeholder-gray-600 focus:ring-1 focus:ring-amber-500/20" />
           </div>
 
+
           <div>
-            <label class="block text-xs uppercase font-mono tracking-wider text-amber-500/80 mb-2">Mobile Number</label>
-            <div class="relative">
-              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-mono">+91</span>
-              <input type="tel" id="register-mobile" placeholder="Enter 10-digit number" required minlength="10" maxlength="10"
-                     class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 pl-14 pr-4 text-sm outline-none transition text-white placeholder-gray-600 focus:ring-1 focus:ring-amber-500/20" />
-            </div>
-          </div>
+  <label class="block text-xs uppercase font-mono tracking-wider text-amber-500/80 mb-2">
+    Mobile Number
+  </label>
+
+  <div class="flex gap-2">
+    <div class="relative flex-1">
+      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-mono">
+        +91
+      </span>
+
+      <input
+        type="tel"
+        id="register-mobile"
+        placeholder="Enter 10-digit number"
+        required
+        minlength="10"
+        maxlength="10"
+        class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 pl-14 pr-4 text-sm outline-none transition text-white placeholder-gray-600 focus:ring-1 focus:ring-amber-500/20"
+      />
+    </div>
+
+    <button
+      type="button"
+      id="generate-otp-btn"
+      onclick="generateOtp()"
+      class="px-4 bg-amber-500 hover:bg-amber-400 text-black rounded-xl font-semibold text-sm transition whitespace-nowrap"
+    >
+      Generate OTP
+    </button>
+  </div>
+
+  <p id="otp-status" class="mt-2 text-xs text-gray-500 hidden"></p>
+</div>
+          <div>
+  <label class="block text-xs uppercase font-mono tracking-wider text-amber-500/80 mb-2">
+    OTP Verification
+  </label>
+
+  <input
+    type="text"
+    id="register-otp"
+    placeholder="Enter 6-digit OTP"
+    maxlength="6"
+    required
+    class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-3 px-4 text-sm outline-none transition text-white placeholder-gray-600 focus:ring-1 focus:ring-amber-500/20"
+  />
+</div>
+
+          
 
           <div>
             <label class="block text-xs uppercase font-mono tracking-wider text-amber-500/80 mb-2">Account password</label>
@@ -177,14 +220,78 @@
         }
       }
 
+      async function generateOtp() {
+
+    const mobile = document
+        .getElementById('register-mobile')
+        .value
+        .trim();
+
+    if (!mobile) {
+        api.showToast('error', 'Please enter mobile number');
+        return;
+    }
+
+    if (!/^[6-9]\d{9}$/.test(mobile)) {
+        api.showToast('error', 'Enter valid 10 digit mobile number');
+        return;
+    }
+
+    const btn = document.getElementById('generate-otp-btn');
+
+    const originalText = btn.innerText;
+
+    try {
+
+        btn.disabled = true;
+        btn.innerText = 'Sending...';
+
+        const response = await api.sendOtp(mobile);
+
+        if (response.success) {
+
+            api.showToast(
+                'success',
+                'OTP sent successfully to WhatsApp'
+            );
+
+        } else {
+
+            api.showToast(
+                'error',
+                response.message || 'Failed to send OTP'
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        api.showToast(
+            'error',
+            'Failed to send OTP'
+        );
+
+    } finally {
+
+        btn.disabled = false;
+        btn.innerText = originalText;
+
+    }
+}
+
       async function handleRegister(e) {
         e.preventDefault();
-        const name = document.getElementById('register-name').value.trim();
+        const username = document.getElementById('register-name').value.trim();
         const mobile = document.getElementById('register-mobile').value.trim();
         const pwd = document.getElementById('register-password').value.trim();
         const ref = document.getElementById('register-refer').value.trim() || null;
+        const otp = document.getElementById('register-otp').value.trim();
 
-        const response = await api.register(mobile, pwd, name, ref);
+        console.log('Attempting registration with', { username, mobile, ref, otp });
+
+        const response = await api.register(mobile, pwd, username, ref, otp);
         if (response.success) {
           localStorage.setItem('dvt_token', response.data.token);
           localStorage.setItem('dvt_user', JSON.stringify(response.data.user));

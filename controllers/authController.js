@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
+import axios from 'axios';
+import qs from 'qs';
 
 // Get the system JWT Secret
 const getJwtSecret = () => process.env.JWT_SECRET || 'super_secret_dragon_vs_tiger_key';
@@ -9,15 +11,120 @@ const getJwtSecret = () => process.env.JWT_SECRET || 'super_secret_dragon_vs_tig
  * POST /api/auth/register
  * Request payload: { mobile, password, full_name, referral_code (optional), username (optional) }
  */
-export const register = async (req, res) => {
-  try {
-    const { mobile, password, full_name, referral_code, username } = req.body;
 
-    // 1. Inputs validation
-    if (!mobile || !password || !full_name) {
+export const sendOtp = async (req, res) => {
+  console.log('OTP Request Started',req.body);
+  const { mobile } = req.body;
+
+
+
+  try {
+
+    const { mobile } = req.body;
+
+    if (!mobile) {
       return res.status(400).json({
         success: false,
-        message: 'Mobile number, password, and full name are required fields.'
+        message: 'Mobile number is required.'
+      });
+    }
+
+    const mobileRegex = /^[6-9]\d{9}$/;
+
+    if (!mobileRegex.test(mobile)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid mobile number.'
+      });
+    }
+
+    // Check existing user
+    const [existingUser] = await pool.query(
+      'SELECT id FROM users WHERE mobile = ?',
+      [mobile]
+    );
+
+    if (existingUser.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mobile number already registered.'
+      });
+    }
+
+    // Generate OTP
+    const otp = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+    console.log(`Generated OTP for ${mobile}: ${otp}`);
+
+    // Delete old OTP
+    await pool.query(
+      'DELETE FROM mobile_otps WHERE mobile = ?',
+      [mobile]
+    );
+
+    // Save new OTP
+    await pool.query(
+      'INSERT INTO mobile_otps (mobile, otp) VALUES (?, ?)',
+      [mobile, otp]
+    );
+
+    // UltraMsg
+  
+
+
+      var data = qs.stringify({
+          "token": "t8ux76qys3z07rho",
+          "to": `+91${mobile}`,
+          "body": `Dragon vs Tiger
+
+Your OTP is: ${otp}
+
+Valid for 3 minutes.
+
+Do not share this OTP.`
+      });
+      
+      var config = {
+        method: 'post',
+        url: 'https://api.ultramsg.com/instance179807/messages/chat',
+        headers: {  
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data : data
+      };
+
+      const ultraResponse = await axios(config);
+
+console.log('UltraMsg Response');
+console.log(ultraResponse.data);
+
+    return res.json({
+      success: true,
+      message: 'OTP sent successfully.'
+    });
+
+  } catch (error) {
+
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+};
+
+
+export const register = async (req, res) => {
+  try {
+    const { mobile, password, full_name, referral_code, username, otp } = req.body;
+    console.log('Registration Request Received', { mobile, full_name, referral_code, username, otp });
+    // 1. Inputs validation
+    // 1. Inputs validation
+    if (!mobile || !password || !full_name || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mobile number, OTP, password, and full name are required fields.'
       });
     }
 
@@ -45,6 +152,36 @@ export const register = async (req, res) => {
         message: 'A user with this mobile number already exists.'
       });
     }
+    // OTP Validation
+const [otpRows] = await pool.query(
+  'SELECT * FROM mobile_otps WHERE mobile = ? AND otp = ?',
+  [mobile, otp]
+);
+
+if (!otpRows || otpRows.length === 0) {
+  return res.status(400).json({
+    success: false,
+    message: 'Invalid OTP.'
+  });
+}
+
+const otpRecord = otpRows[0];
+
+const otpAge =
+  Date.now() -
+  new Date(otpRecord.created_at).getTime();
+
+if (otpAge > 3 * 60 * 1000) {
+  await pool.query(
+    'DELETE FROM mobile_otps WHERE mobile = ?',
+    [mobile]
+  );
+
+  return res.status(400).json({
+    success: false,
+    message: 'OTP expired. Please generate a new OTP.'
+  });
+}
 
     // 3. Optional Referral mapping verification
     let referredById = null;
@@ -104,6 +241,11 @@ export const register = async (req, res) => {
     );
 
     const insertedUserId = insertResult.insertId;
+    // OTP consumed successfully
+await pool.query(
+  'DELETE FROM mobile_otps WHERE mobile = ?',
+  [mobile]
+);
 
     // 8. Handle Referrals Ledger if a valid referrer referenced them
     if (referredById) {
@@ -253,7 +395,8 @@ export const login = async (req, res) => {
  */
 export const adminLogin = async (req, res) => {
   try {
-    const { username, password } = req.body;
+
+    const { username, password, otp } = req.body;
 
     if (!username || !password) {
       return res.status(400).json({
@@ -262,9 +405,19 @@ export const adminLogin = async (req, res) => {
       });
     }
 
-    // Verify admin credentials
     const [admins] = await pool.query(
-      'SELECT id, username, password_hash, full_name, role, is_active FROM admins WHERE username = ?',
+      `
+      SELECT
+        id,
+        username,
+        password_hash,
+        full_name,
+        role,
+        is_active,
+        mobile
+      FROM admins
+      WHERE username = ?
+      `,
       [username]
     );
 
@@ -284,8 +437,11 @@ export const adminLogin = async (req, res) => {
       });
     }
 
-    // Match credential crypt password encryption format
-    const isPasswordValid = await bcrypt.compare(password, matchedAdmin.password_hash);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      matchedAdmin.password_hash
+    );
+
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -293,16 +449,64 @@ export const adminLogin = async (req, res) => {
       });
     }
 
-    // Exclude security credential fields
+    // OTP Validation
+    if (!otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'OTP required'
+      });
+    }
+
+    const [otpRows] = await pool.query(
+      `
+      SELECT *
+      FROM mobile_otps
+      WHERE mobile = ?
+      AND otp = ?
+      `,
+      [
+        matchedAdmin.mobile,
+        otp
+      ]
+    );
+
+    if (!otpRows || otpRows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid OTP'
+      });
+    }
+
+    const otpRecord = otpRows[0];
+
+    const age =
+      Date.now() -
+      new Date(otpRecord.created_at).getTime();
+
+    if (age > 3 * 60 * 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'OTP expired'
+      });
+    }
+
+    // Consume OTP
+    await pool.query(
+      `
+      DELETE FROM mobile_otps
+      WHERE mobile = ?
+      `,
+      [matchedAdmin.mobile]
+    );
+
     delete matchedAdmin.password_hash;
 
-    // Generate JWT admin claim authority credentials payload structure
     const token = jwt.sign(
-      { 
-        id: matchedAdmin.id, 
-        username: matchedAdmin.username, 
+      {
+        id: matchedAdmin.id,
+        username: matchedAdmin.username,
         role: matchedAdmin.role,
-        isAdmin: true 
+        isAdmin: true
       },
       getJwtSecret(),
       { expiresIn: '24h' }
@@ -318,12 +522,148 @@ export const adminLogin = async (req, res) => {
     });
 
   } catch (error) {
+
     return res.status(500).json({
       success: false,
-      message: 'Server failure parsing admin auth signature: ' + error.message,
+      message:
+        'Server failure parsing admin auth signature: ' +
+        error.message,
       data: {}
     });
+
   }
+};
+
+export const adminSendOtp = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const {
+      username,
+      password
+    } = req.body;
+
+    const [admins] =
+      await pool.query(
+        `
+        SELECT *
+        FROM admins
+        WHERE username = ?
+        `,
+        [username]
+      );
+
+    if (
+      !admins ||
+      admins.length === 0
+    ) {
+
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid admin'
+      });
+
+    }
+
+    const admin =
+      admins[0];
+
+    const valid =
+      await bcrypt.compare(
+        password,
+        admin.password_hash
+      );
+
+    if (!valid) {
+
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid password'
+      });
+
+    }
+
+    const otp =
+      Math.floor(
+        100000 +
+        Math.random() * 900000
+      ).toString();
+
+    await pool.query(
+      `
+      DELETE
+      FROM mobile_otps
+      WHERE mobile = ?
+      `,
+      [admin.mobile]
+    );
+
+    await pool.query(
+      `
+      INSERT INTO mobile_otps
+      (
+        mobile,
+        otp
+      )
+      VALUES
+      (
+        ?,
+        ?
+      )
+      `,
+      [
+        admin.mobile,
+        otp
+      ]
+    );
+
+    // Use your existing UltraMsg code here
+
+var data = qs.stringify({
+    "token": "t8ux76qys3z07rho",
+    "to": `91${admin.mobile}`,
+    "body": `Dragon vs Tiger Admin Login
+
+Your OTP is: ${otp}
+
+Valid for 3 minutes.
+
+Do not share this OTP.`
+});
+
+var config = {
+    method: 'post',
+    url: 'https://api.ultramsg.com/instance179807/messages/chat',
+    headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    data: data
+};
+
+const ultraResponse = await axios(config);
+
+console.log(
+    'Admin OTP Sent:',
+    ultraResponse.data
+);
+
+return res.json({
+    success: true,
+    message: 'OTP sent successfully'
+});
+
+  } catch (error) {
+
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+
 };
 
 /**

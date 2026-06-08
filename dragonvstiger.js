@@ -69,6 +69,7 @@ export function initDragonTiger(io, con) {
         }
 
         // Wallet Logic
+        // Wallet Logic
         if (!con) {
           console.error("❌ Database pool missing!");
           return;
@@ -76,9 +77,12 @@ export function initDragonTiger(io, con) {
 
         const connection = await con.getConnection();
         try {
-          const [result] = await connection.query("SELECT wallet_balance FROM users WHERE id = ?", [user_Id]);
+          const [result] = await connection.query("SELECT wallet_balance, withdraw_wallet FROM users WHERE id = ?", [user_Id]);
           if (result && result.length > 0) {
-            socket.wallet = result[0].wallet_balance;
+            socket.wallet_balance = parseFloat(result[0].wallet_balance || 0);
+            socket.withdraw_wallet = parseFloat(result[0].withdraw_wallet || 0);
+            socket.wallet = socket.wallet_balance + socket.withdraw_wallet;
+
             socket.emit('walet', { data: socket.wallet });
             socket.emit('currentBetting', { 
               dragon_side: Dragon_side.has(user_Id) ? Dragon_side.get(user_Id).betAmount : 0, 
@@ -103,7 +107,8 @@ export function initDragonTiger(io, con) {
         const betAmount = parseInt(data.inputValue);
         const betSide = data.side.toLowerCase();
 
-        if (socket.wallet >= betAmount) {
+        // Check if combined balances are enough
+        if (socket.wallet_balance + socket.withdraw_wallet >= betAmount) {
           const betInfo = {
             socket: socket,
             betAmount: betAmount,
@@ -130,11 +135,23 @@ export function initDragonTiger(io, con) {
             }
           }
 
-          socket.wallet -= betAmount;
+          // Deduct from wallet_balance first. Leftover from withdraw_wallet
+          if (socket.wallet_balance >= betAmount) {
+            socket.wallet_balance -= betAmount;
+          } else {
+            const leftover = betAmount - socket.wallet_balance;
+            socket.wallet_balance = 0;
+            socket.withdraw_wallet -= leftover;
+          }
+          
+          socket.wallet = socket.wallet_balance + socket.withdraw_wallet;
 
           const connection = await con.getConnection();
           try {
-            await connection.query("UPDATE users SET wallet_balance = ? WHERE id = ?", [socket.wallet, user_Id]);
+            await connection.query(
+              "UPDATE users SET wallet_balance = ?, withdraw_wallet = ? WHERE id = ?",
+              [socket.wallet_balance, socket.withdraw_wallet, user_Id]
+            );
             
             // Success responses
             socket.emit('walet', { data: socket.wallet });
@@ -256,10 +273,15 @@ export function initDragonTiger(io, con) {
           const userSocket = userSockets.get(userId);
           
           if (userSocket) {
-            userSocket.wallet += payout;
+            // Add winning payout directly to withdraw_wallet
+            userSocket.withdraw_wallet += payout;
+            userSocket.wallet = userSocket.wallet_balance + userSocket.withdraw_wallet;
             try {
               const connection = await con.getConnection();
-              await connection.query("UPDATE users SET wallet_balance = ? WHERE id = ?", [userSocket.wallet, userId]);
+              await connection.query(
+                "UPDATE users SET wallet_balance = ?, withdraw_wallet = ? WHERE id = ?", 
+                [userSocket.wallet_balance, userSocket.withdraw_wallet, userId]
+              );
               connection.release();
               
               userSocket.emit('walet', { data: userSocket.wallet });

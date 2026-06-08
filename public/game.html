@@ -525,7 +525,11 @@ Hero Section: Dragon vs Tiger -->
 
         const balanceRes = await api.getBalance();
         if (balanceRes.success) {
-          document.getElementById('wallet-balance').innerText = `₹${parseFloat(balanceRes.data.wallet_balance).toFixed(2)}`;
+          var wallet= balanceRes.data.wallet_balance.wallet_balance;
+          var gameBalance = balanceRes.data.wallet_balance.withdraw_wallet;
+          var real = wallet+gameBalance;
+          console.log('wallet:', real);
+          document.getElementById('wallet-balance').innerText = real;
         }
       }
 
@@ -584,8 +588,11 @@ Hero Section: Dragon vs Tiger -->
             ledgerBox.innerHTML = `<p class="text-[11px] text-gray-500 font-mono py-4 text-center">Your wagers will appear here once placed.</p>`;
             return;
           }
-
-          res.data.slice(0, 8).forEach(bet => {
+          // cconsole.log('full res:', res);
+console.log('res.data:', res.data);
+console.log('res.data.bets:', res.data?.bets);
+          const bets = Array.isArray(res.data) ? res.data : (res.data.bets || res.data.data || []);
+          res.data.bets.slice(0, 8).forEach(bet => {
             const dateStr = new Date(bet.created_at).toLocaleTimeString();
             let statusBadge = '';
             if (bet.status === 'pending') {
@@ -696,24 +703,24 @@ Hero Section: Dragon vs Tiger -->
         });
 
         // 1. Live countdown start event listener
-        socket.on('round_start', (data) => {
-          currentRoundId = data.round_id;
-          document.getElementById('round-serial').innerText = `ROUND ID: ${data.round_number}`;
-          isBettingOpen = true;
+        // socket.on('round_start', (data) => {
+        //   currentRoundId = data.round_id;
+        //   document.getElementById('round-serial').innerText = `ROUND ID: ${data.round_number}`;
+        //   isBettingOpen = true;
 
-          resetVisualArena();
-          syncUserMetrics(); // Refresh balance state
+        //   resetVisualArena();
+        //   syncUserMetrics(); // Refresh balance state
           
-          document.getElementById('btn-bet-dragon').classList.remove('opacity-40');
-          document.getElementById('btn-bet-tie').classList.remove('opacity-40');
-          document.getElementById('btn-bet-tiger').classList.remove('opacity-40');
+        //   document.getElementById('btn-bet-dragon').classList.remove('opacity-40');
+        //   document.getElementById('btn-bet-tie').classList.remove('opacity-40');
+        //   document.getElementById('btn-bet-tiger').classList.remove('opacity-40');
 
-          document.getElementById('timer-label').innerText = 'SEC PLACE BETS';
-          document.getElementById('timer-clock').className = 'text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-amber-400 to-amber-600 font-mono tracking-tight leading-none';
+        //   document.getElementById('timer-label').innerText = 'SEC PLACE BETS';
+        //   document.getElementById('timer-clock').className = 'text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-amber-400 to-amber-600 font-mono tracking-tight leading-none';
           
-          // Render Live count and match statistics
-          startClientSideTimer(data.timeLeft);
-        });
+        //   // Render Live count and match statistics
+        //   startClientSideTimer(data.timeLeft);
+        // });
 
         // 2. Bets closed countdown block event listener
         socket.on('betting_closed', (data) => {

@@ -215,10 +215,35 @@
 
       // Load balance summary metrics
       async function syncData() {
+
+
+        let minDeposit ;
+
+        async function loadDepositSettings() {
+        const res = await api.getWithdrawalSettings();
+        
+
+        if (res.success) {
+          minDeposit = res.data.minimum_deposit;
+          console.log('Withdrawal Settings:', minDeposit);
+          const amountInput =
+            document.getElementById('deposit-amount');
+
+          amountInput.min = minDeposit;
+          amountInput.placeholder =
+            `Minimum: ₹${minDeposit}`;
+        }
+      }
+      loadDepositSettings();
+
         // Balance
         const balanceRes = await api.getBalance();
         if (balanceRes.success) {
-          document.getElementById('wallet-balance').innerText = `₹${parseFloat(balanceRes.data.wallet_balance).toFixed(2)}`;
+                   var wallet= balanceRes.data.wallet_balance.wallet_balance;
+          var gameBalance = balanceRes.data.wallet_balance.withdraw_wallet;
+          var real = wallet+gameBalance;
+          console.log('wallet:', real);
+          document.getElementById('wallet-balance').innerText = real;
         }
 
         // UPI Settings dynamically
@@ -302,6 +327,8 @@
           // apiCall handles displaying error toasted alerts
         }
       }
+
+      
 
       window.addEventListener('DOMContentLoaded', syncData);
     </script>

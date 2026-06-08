@@ -12,8 +12,10 @@ import {
   getDepositsHistory,
   requestWithdrawal,
   getWithdrawalsHistory,
+  getWithdrawalSettings,
   getUpiSettings
 } from '../controllers/walletController.js';
+
 
 const router = express.Router();
 
@@ -72,8 +74,42 @@ router.post('/withdrawals/request', verifyToken, requestWithdrawal);
 
 // GET /api/withdrawals/history - Retrieve payout withdrawals history
 router.get('/withdrawals/history', verifyToken, getWithdrawalsHistory);
-
+router.get('/settings', getWithdrawalSettings);
 // GET /api/settings/upi - Public credentials setting details (UPI target address)
 router.get('/settings/upi', getUpiSettings);
+router.get('/settings', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT setting_key, setting_value
+       FROM settings
+       WHERE setting_key IN (
+         'min_deposit',
+         'min_withdrawal',
+         'max_withdrawal'
+       )`
+    );
+
+    const settings = {};
+
+    rows.forEach(row => {
+      settings[row.setting_key] = row.setting_value;
+    });
+
+    res.json({
+      success: true,
+      data: {
+        minimum_deposit: parseFloat(settings.min_deposit || 200),
+        minimum_withdrawal: parseFloat(settings.min_withdrawal || 10),
+        maximum_withdrawal: parseFloat(settings.max_withdrawal || 50000)
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
 
 export default router;

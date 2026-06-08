@@ -104,11 +104,17 @@ export const deductBalance = async (userId, amount, type, referenceId = null, de
  * Fetch a user's wallet balance directly without transactions
  */
 export const getBalance = async (userId) => {
-  const [rows] = await pool.query('SELECT wallet_balance FROM users WHERE id = ?', [userId]);
+  const [rows] = await pool.query(
+    'SELECT wallet_balance, withdraw_wallet FROM users WHERE id = ?', 
+    [userId]
+  );
   if (!rows || rows.length === 0) {
     throw new Error('User profile not found.');
   }
-  return parseFloat(rows[0].wallet_balance);
+  return {
+    wallet_balance: parseFloat(rows[0].wallet_balance),
+    withdraw_wallet: parseFloat(rows[0].withdraw_wallet || 0)
+  };
 };
 
 /**

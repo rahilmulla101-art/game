@@ -66,9 +66,39 @@
                    class="w-full bg-black/80 border border-gray-800 focus:border-red-500/40 rounded-xl py-3 px-4 text-sm outline-none transition text-white placeholder-gray-700 font-mono focus:ring-1 focus:ring-red-500/10" />
           </div>
 
-          <button type="submit" class="w-full py-4 bg-red-800/80 hover:bg-red-700 text-white text-xs font-bold font-mono tracking-widest rounded-xl transition duration-350 border border-red-750 cursor-pointer shadow-lg shadow-red-900/10">
-            SYSTEM DIRECTORY INGRESS
-          </button>
+<div class="space-y-3">
+
+  <button
+    type="button"
+    onclick="generateAdminOtp()"
+    id="generate-admin-otp-btn"
+    class="w-full py-3 bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold font-mono tracking-widest rounded-xl transition cursor-pointer"
+  >
+    GENERATE OTP
+  </button>
+
+  <div id="admin-otp-container" class="hidden">
+    <label class="block text-xs uppercase font-mono tracking-wider text-red-500/85 mb-2">
+      OTP Verification
+    </label>
+
+    <input
+      type="text"
+      id="admin-otp"
+      placeholder="Enter OTP"
+      maxlength="6"
+      class="w-full bg-black/80 border border-gray-800 focus:border-red-500/40 rounded-xl py-3 px-4 text-sm outline-none transition text-white"
+    />
+  </div>
+
+  <button
+    type="submit"
+    class="w-full py-4 bg-red-800/80 hover:bg-red-700 text-white text-xs font-bold font-mono tracking-widest rounded-xl transition duration-350 border border-red-750 cursor-pointer shadow-lg shadow-red-900/10"
+  >
+    SYSTEM DIRECTORY INGRESS
+  </button>
+
+</div>
         </form>
       </div>
     </main>
@@ -92,12 +122,51 @@
       
       window.addEventListener('DOMContentLoaded', checkActiveAdminSession);
 
+      async function generateAdminOtp() {
+
+      const username =
+        document.getElementById('admin-user').value.trim();
+
+      const password =
+        document.getElementById('admin-password').value.trim();
+
+      if (!username || !password) {
+        api.showToast(
+          'error',
+          'Enter username and password first'
+        );
+        return;
+      }
+
+      const response =
+        await api.adminSendOtp(
+          username,
+          password
+        );
+
+      if (response.success) {
+
+        document
+          .getElementById('admin-otp-container')
+          .classList.remove('hidden');
+
+        api.showToast(
+          'success',
+          'OTP sent to admin WhatsApp'
+        );
+
+      }
+    }
       async function handleAdminLogin(e) {
         e.preventDefault();
         const username = document.getElementById('admin-user').value.trim();
         const pwd = document.getElementById('admin-password').value.trim();
+        const otp =
+  document.getElementById('admin-otp')
+  ?.value
+  ?.trim();
 
-        const response = await api.adminLogin(username, pwd);
+        const response = await api.adminLogin(username, pwd,otp);
         if (response.success) {
           localStorage.setItem('dvt_admin_token', response.data.token);
           localStorage.setItem('dvt_admin_user', JSON.stringify(response.data.admin));
