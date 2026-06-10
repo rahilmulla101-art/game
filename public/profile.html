@@ -90,27 +90,21 @@
             <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-black text-xs font-bold font-mono tracking-widest rounded-xl transition duration-300 shadow-xl cursor-pointer">
               UPDATE PROFILE PREFERENCES
             </button>
+            <!-- Locate this existing piece of code: -->
+
+<!-- ➕ ADD THIS RIGHT BENEATH IT: -->
+<button type="button" onclick="openResetModal()" class="w-full mt-3 py-3 border border-amber-500/30 hover:bg-amber-500/10 text-amber-500 text-xs font-bold font-mono tracking-widest rounded-xl transition duration-300 cursor-pointer">
+  🔐 SECURE CHANGE PASSWORD
+</button>
+            
           </form>
         </div>
+        <!-- CHANGE PASSWORD SETTINGS (TABBED SECTION) -->
+       <!-- PASSWORD & SECURITY PREFERENCES CARD -->
+        
 
         <!-- STATISTICS BENTO METRIC CARDS -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <!-- Total turnover-->
-          <div class="bg-gray-900/40 border border-gray-850 p-5 rounded-2xl flex flex-col justify-between">
-            <p class="text-[10px] uppercase font-mono tracking-wider text-gray-500">Total Playturn</p>
-            <p id="stat-turnover" class="text-xl md:text-2xl font-bold font-mono text-white mt-1">₹0.00</p>
-          </div>
-          <!-- Win ratio -->
-          <!-- <div class="bg-gray-900/40 border border-gray-850 p-5 rounded-2xl flex flex-col justify-between">
-            <p class="text-[10px] uppercase font-mono tracking-wider text-gray-500">Recorded Bets</p>
-            <p id="stat-bets" class="text-xl md:text-2xl font-bold font-mono text-emerald-400 mt-1">0</p>
-          </div> -->
-          <!-- Streak bonus-->
-          <div class="bg-gray-900/40 border border-gray-850 p-5 rounded-2xl flex flex-col justify-between">
-            <p class="text-[10px] uppercase font-mono tracking-wider text-gray-500">Won Bets</p>
-            <p id="stat-won" class="text-xl md:text-2xl font-bold font-mono text-amber-500 mt-1">0</p>
-          </div>
-        </div>
+        <!--  -->
       </div>
 
       <!-- REFERRAL AND PARTNERSHIP SYSTEM LISTS -->
@@ -144,6 +138,83 @@
           </div>
         </div>
       </div>
+      <!-- ➕ ADD BEFORE </body> TAG: -->
+<!-- Change Password Modal Backdrop Overlay -->
+<div id="password-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4">
+  <div class="bg-[#0c0d16] border border-amber-500/25 rounded-2xl w-full max-w-sm p-6 relative overflow-hidden shadow-2xl">
+    
+    <!-- Close Button -->
+    <button onclick="closeResetModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white font-mono text-sm cursor-pointer transition">✕</button>
+    
+    <div class="mb-4">
+      <h3 class="text-sm font-bold display-font text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-400 uppercase tracking-wider">
+        Change Passcode
+      </h3>
+      <p class="text-[9px] text-gray-500 font-mono uppercase tracking-wider mt-0.5">Choose secure authentication method</p>
+    </div>
+
+    <!-- Toggle Selection Tab Options -->
+    <div class="flex gap-2 border-b border-gray-800/80 pb-2 mb-5">
+      <button id="tab-pass" onclick="switchTab('pass')" class="flex-1 py-1 text-[10px] font-bold font-mono text-amber-500 border-b-2 border-amber-500 uppercase tracking-wider">
+        Password Method
+      </button>
+      <button id="tab-otp" onclick="switchTab('otp')" class="flex-1 py-1 text-[10px] font-bold font-mono text-gray-500 border-b-2 border-transparent hover:text-gray-300 uppercase tracking-wider">
+        OTP Method
+      </button>
+    </div>
+
+    <!-- TAB 1: Direct Password Change Form -->
+    <form id="form-password-direct" onsubmit="handleDirectPasswordChange(event)" class="space-y-4">
+      <div>
+        <label class="block text-[10px] uppercase font-mono tracking-wider text-gray-500 mb-1">Old Password</label>
+        <input type="password" id="old-pass" placeholder="••••••••" required
+               class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-2.5 px-4 text-xs outline-none text-white focus:ring-1 focus:ring-amber-500/10 font-sans" />
+      </div>
+      <div>
+        <label class="block text-[10px] uppercase font-mono tracking-wider text-gray-500 mb-1">New Password</label>
+        <input type="password" id="new-pass" placeholder="At least 6 characters" required
+               class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-2.5 px-4 text-xs outline-none text-white focus:ring-1 focus:ring-amber-500/10 font-sans" />
+      </div>
+      <div>
+        <label class="block text-[10px] uppercase font-mono tracking-wider text-gray-500 mb-1">Confirm New Password</label>
+        <input type="password" id="confirm-pass" placeholder="Rewrite new password" required
+               class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-2.5 px-4 text-xs outline-none text-white focus:ring-1 focus:ring-amber-500/10 font-sans" />
+      </div>
+      <button type="submit" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-black text-xs font-bold font-mono tracking-widest rounded-xl transition duration-300 shadow-xl cursor-pointer">
+        COMMIT CHANGE
+      </button>
+    </form>
+
+    <!-- TAB 2: OTP-based Password Change Form -->
+    <!-- TAB 2: OTP-based Password Change Form -->
+    <form id="form-password-otp" onsubmit="handleOtpPasswordChange(event)" class="space-y-4 hidden">
+      <div class="bg-black/60 p-3 border border-gray-850 rounded-xl flex items-center justify-between gap-2">
+        <span class="text-[9px] text-gray-400 font-mono leading-relaxed">Send verification OTP to your registered WhatsApp mobile first.</span>
+        <button type="button" onclick="sendChangeOtp()" class="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black text-[9px] font-bold font-mono tracking-wider rounded-lg shrink-0 cursor-pointer transition">
+          SEND OTP
+        </button>
+      </div>
+      <div>
+        <label class="block text-[10px] uppercase font-mono tracking-wider text-gray-500 mb-1">One-time OTP Pin</label>
+        <input type="text" id="otp-code" placeholder="Enter 6-digit OTP code" required
+               class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-2.5 px-4 text-xs outline-none text-white focus:ring-1 focus:ring-amber-500/10 font-mono" />
+      </div>
+      <div>
+        <label class="block text-[10px] uppercase font-mono tracking-wider text-gray-500 mb-1">New Password</label>
+        <input type="password" id="otp-new-pass" placeholder="Minimum 6 characters" required
+               class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-2.5 px-4 text-xs outline-none text-white focus:ring-1 focus:ring-amber-500/10 font-sans" />
+      </div>
+      <div>
+        <label class="block text-[10px] uppercase font-mono tracking-wider text-gray-500 mb-1">Confirm New Password</label>
+        <input type="password" id="otp-confirm-pass" placeholder="Rewrite new password" required
+               class="w-full bg-black/60 border border-gray-800 focus:border-amber-500/50 rounded-xl py-2.5 px-4 text-xs outline-none text-white focus:ring-1 focus:ring-amber-500/10 font-sans" />
+      </div>
+      <button type="submit" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-black text-xs font-bold font-mono tracking-widest rounded-xl transition duration-300 shadow-xl cursor-pointer">
+        COMMIT CHANGE WITH OTP
+      </button>
+    </form>
+  </div>
+</div>
     </main>
 
     <footer class="border-t border-gray-850 bg-black/60 py-6 mt-12">
@@ -175,8 +246,104 @@
         });
       }
 
+      // ➕ ADD TO GLOBAL SCRIPT SECTION IN profile.html:
+
+// Modal Opening / Closing Coordinate Methods
+function openResetModal() {
+  document.getElementById('password-modal').classList.remove('hidden');
+  document.getElementById('password-modal').classList.add('flex');
+}
+
+function closeResetModal() {
+  document.getElementById('password-modal').classList.remove('flex');
+  document.getElementById('password-modal').classList.add('hidden');
+  // Flush form inputs
+  document.getElementById('form-password-direct').reset();
+  document.getElementById('form-password-otp').reset();
+}
+
+// Switches form rendering between standard Password input and OTP input
+function switchTab(method) {
+  const tabPass = document.getElementById('tab-pass');
+  const tabOtp = document.getElementById('tab-otp');
+  const formPass = document.getElementById('form-password-direct');
+  const formOtp = document.getElementById('form-password-otp');
+
+  if (method === 'pass') {
+    tabPass.className = "flex-1 py-1 text-[10px] font-bold font-mono text-amber-500 border-b-2 border-amber-500 uppercase tracking-wider";
+    tabOtp.className = "flex-1 py-1 text-[10px] font-bold font-mono text-gray-500 border-b-2 border-transparent hover:text-gray-300 uppercase tracking-wider";
+    formPass.classList.remove('hidden');
+    formOtp.classList.add('hidden');
+  } else {
+    tabOtp.className = "flex-1 py-1 text-[10px] font-bold font-mono text-amber-500 border-b-2 border-amber-500 uppercase tracking-wider";
+    tabPass.className = "flex-1 py-1 text-[10px] font-bold font-mono text-gray-500 border-b-2 border-transparent hover:text-gray-300 uppercase tracking-wider";
+    formOtp.classList.remove('hidden');
+    formPass.classList.add('hidden');
+  }
+}
+
+// Handler: Form Submission for direct Password (Old Pass -> New Pass)
+async function handleDirectPasswordChange(e) {
+  e.preventDefault();
+  const oldPassword = document.getElementById('old-pass').value;
+  const newPassword = document.getElementById('new-pass').value;
+  const confirmPassword = document.getElementById('confirm-pass').value;
+
+  if (newPassword.length < 6) {
+    api.showToast('error', 'New password must contain at least 6 characters.');
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    api.showToast('error', 'Passcodes do not match.');
+    return;
+  }
+
+  const res = await api.changePasswordDirect(oldPassword, newPassword, confirmPassword);
+  if (res.success) {
+    api.showToast('success', 'Your password was successfully updated!');
+    closeResetModal();
+  }
+}
+
+// Handler: Send OTP request via WhatsApp for profile setting update
+async function sendChangeOtp() {
+  const res = await api.changePasswordSendOtp(); // 👈 Changed to match api.js name
+  if (res.success) {
+    api.showToast('success', 'OTP sent to your registered mobile WhatsApp!');
+  }
+}
+
+// Handler: Form Submission for OTP validation + password rotation
+// Handler: Form Submission for OTP validation + password rotation
+async function handleOtpPasswordChange(e) {
+  e.preventDefault();
+  const otp = document.getElementById('otp-code').value.trim();
+  const newPassword = document.getElementById('otp-new-pass').value;
+  const confirmPassword = document.getElementById('otp-confirm-pass').value;
+
+  if (newPassword.length < 6) {
+    api.showToast('error', 'New password must contain at least 6 characters.');
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    api.showToast('error', 'Passcode credentials do not match.');
+    return;
+  }
+
+  // Call API passing only otp and newPassword
+  const res = await api.changePasswordOtp(otp, newPassword);
+  if (res.success) {
+    api.showToast('success', 'Your password was securely changed via OTP verification.');
+    closeResetModal();
+  }
+}
+
       // Sync and download Cabinet metrics
       async function syncCabinet() {
+
+
         // Balance
         const balanceRes = await api.getBalance();
         if (balanceRes.success) {
@@ -201,13 +368,15 @@
         // Game Stats
         const stats = await api.getStats();
         if (stats.success && stats.data) {
-          document.getElementById('stat-bets').innerText = stats.data.total_bets || 0;
+          console.log('Game Stats:', stats.data);
+
           document.getElementById('stat-won').innerText = stats.data.won_bets || 0;
           document.getElementById('stat-turnover').innerText = `₹${parseFloat(stats.data.total_turnover || 0).toFixed(2)}`;
         }
 
         // Referrals logs list
         const refList = await api.getReferrals();
+        console.log('Referral List:', refList);
         if (refList.success) {
           const listContainer = document.getElementById('referrals-list');
           listContainer.innerHTML = '';
@@ -235,6 +404,112 @@
             listContainer.appendChild(item);
           });
         }
+
+        // TAB CONTROLLER SWITCHING
+      function switchPasswordTab(tabType) {
+        const d_pwd = document.getElementById('form-change-pwd-raw');
+        const d_otp = document.getElementById('form-change-pwd-otp');
+        const b_pwd = document.getElementById('btn-tab-pwd');
+        const b_otp = document.getElementById('btn-tab-otp');
+
+        if (tabType === 'pwd') {
+          d_pwd.classList.remove('hidden');
+          d_otp.classList.add('hidden');
+          b_pwd.className = "px-3 py-1 text-[10px] uppercase font-mono font-bold bg-amber-500 text-black rounded transition";
+          b_otp.className = "px-3 py-1 text-[10px] uppercase font-mono font-bold text-gray-400 hover:text-white rounded transition";
+        } else {
+          d_pwd.classList.add('hidden');
+          d_otp.classList.remove('hidden');
+          b_pwd.className = "px-3 py-1 text-[10px] uppercase font-mono font-bold text-gray-400 hover:text-white rounded transition";
+          b_otp.className = "px-3 py-1 text-[10px] uppercase font-mono font-bold bg-amber-500 text-black rounded transition";
+        }
+      }
+
+      // SUBMIT TYPE 1: PASSWORD-BASED PASSWORD RESET
+      async function handlePasswordChange(e) {
+        e.preventDefault();
+        const old_password = document.getElementById('old-pwd').value;
+        const new_password = document.getElementById('new-pwd').value;
+        const confirm_password = document.getElementById('confirm-pwd').value;
+
+        if (new_password !== confirm_password) {
+          api.showToast('danger', 'New passwords do not match');
+          return;
+        }
+
+        try {
+          // Send request with standard API token in header handled by api.js
+          const res = await api.changePasswordWithOld({ old_password, new_password });
+          if (res.success) {
+            api.showToast('success', 'Password updated successfully!');
+            document.getElementById('form-change-pwd-raw').reset();
+          } else {
+            api.showToast('danger', res.message || 'Error updating password.');
+          }
+        } catch (err) {
+          api.showToast('danger', 'System error connection.');
+        }
+      }
+
+      // SEND RESET OTP FOR OPTION 2
+      async function sendResetOtp() {
+        const btn = document.getElementById('btn-send-otp');
+        btn.disabled = true;
+        btn.innerText = 'Sending OTP...';
+
+        try {
+          const res = await api.sendCabinetResetOtp();
+          if (res.success) {
+            api.showToast('success', 'OTP Sent to WhatsApp!');
+            let cooldown = 60;
+            const timer = setInterval(() => {
+              if (cooldown <= 0) {
+                clearInterval(timer);
+                btn.disabled = false;
+                btn.innerText = 'SEND OTP TO MOBILE';
+              } else {
+                btn.innerText = `Retry in ${cooldown}s`;
+                cooldown--;
+              }
+            }, 1000);
+          } else {
+            api.showToast('danger', res.message || 'Failed to dispatch OTP.');
+            btn.disabled = false;
+            btn.innerText = 'SEND OTP TO MOBILE';
+          }
+        } catch (err) {
+          api.showToast('danger', 'Network fault.');
+          btn.disabled = false;
+          btn.innerText = 'SEND OTP TO MOBILE';
+        }
+      }
+
+      // SUBMIT TYPE 2: OTP-BASED PASSWORD RESET
+      async function handleOtpPasswordChange(e) {
+        e.preventDefault();
+        const otp = document.getElementById('reset-otp').value.trim();
+        const new_password = document.getElementById('reset-new-pwd').value;
+        const confirm_password = document.getElementById('reset-confirm-pwd').value;
+
+        if (new_password !== confirm_password) {
+          api.showToast('success', 'Passwords do not match'); // Warning mismatch
+          api.showToast('danger', 'Passwords do not match');
+          return;
+        }
+
+        try {
+          const res = await api.changePasswordWithOtp({ otp, new_password });
+          if (res.success) {
+            api.showToast('success', 'Password reset successfully!');
+            document.getElementById('form-change-pwd-otp').reset();
+          } else {
+            api.showToast('danger', res.message || 'Invalid verification OTP.');
+          }
+        } catch (error) {
+          api.showToast('danger', 'Execution failure.');
+        }
+      }
+      
       }
 
       // Update configuration details

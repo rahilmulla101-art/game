@@ -153,6 +153,15 @@ export function initDragonTiger(io, con) {
               [socket.wallet_balance, socket.withdraw_wallet, user_Id]
             );
             
+                        await connection.query(
+              `INSERT INTO bets (user_id, round_id, bet_amount, bet_on, status, payout_amount) 
+               VALUES (?, ?, ?, ?, 'pending', 0.00)`,
+              [user_Id, C, betAmount, betSide]
+            );
+
+            // Commit modifications
+            await connection.commit();
+
             // Success responses
             socket.emit('walet', { data: socket.wallet });
             socket.emit('currentBetting', {
@@ -269,8 +278,97 @@ export function initDragonTiger(io, con) {
         const winners = winningSide === "Dragon" ? Dragon_side : Tiger_side;
         
         for (const [userId, betInfo] of winners.entries()) {
-          const payout = betInfo.betAmount * 2;
-          const userSocket = userSockets.get(userId);
+          const connection = await con.getConnection();
+
+          const [settingRows] = await connection.query(
+            `
+            SELECT setting_value
+            FROM site_settings
+            WHERE setting_key = ?
+            `,
+            ['dragonvstiger_multiplier']
+          );
+
+          const multiplier =
+            settingRows.length > 0
+              ? parseFloat(settingRows[0].setting_value): 2;
+
+              const payout =
+              betInfo.betAmount * multiplier;
+
+            const referralCommission =betInfo.betAmount * (2 - multiplier);
+            if (referralCommission > 0) {
+
+    const [winnerRows] =
+      await connection.query(
+        `
+        SELECT
+          username,
+          referred_by
+        FROM users
+        WHERE id = ?
+        `,
+        [userId]
+      );
+
+    if (
+      winnerRows.length > 0 &&
+      winnerRows[0].referred_by
+    ) {
+
+      const winner =
+        winnerRows[0];
+
+      // Credit referrer
+      await connection.query(
+        `
+        UPDATE users
+        SET wallet_balance =
+            wallet_balance + ?
+        WHERE id = ?
+        `,
+        [
+          referralCommission,
+          winner.referred_by
+        ]
+      );
+
+      // Log referral earning
+      await connection.query(
+        `
+        INSERT INTO referral_payouts
+        (
+          user_id,
+          credited_username,
+          amount,
+          game_name,
+          betting_type,
+          round_id
+        )
+        VALUES
+        (
+          ?,
+          ?,
+          ?,
+          ?,
+          ?,
+          ?
+        )
+        `,
+        [
+          winner.referred_by, // referrer id
+          winner.username,    // winner username
+          referralCommission,
+          'Dragon vs Tiger',
+          winningSide,
+          C      // replace with your round variable
+        ]
+      );
+
+    }
+
+}
+              const userSocket = userSockets.get(userId);
           
           if (userSocket) {
             // Add winning payout directly to withdraw_wallet

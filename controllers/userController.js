@@ -118,21 +118,22 @@ export const getUserStats = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // 1. Fetch fundamental bet sums and counts
+    // 1. Fetch aggregated stats from bets (integrating won filter for total wins & highest payout)
     const [statsRows] = await pool.query(
       `SELECT 
          COUNT(id) as total_bets,
          COALESCE(SUM(CASE WHEN status = 'won' THEN payout_amount ELSE 0 END), 0) as total_won,
          COALESCE(SUM(CASE WHEN status = 'lost' THEN bet_amount ELSE 0 END), 0) as total_lost,
          COALESCE(MAX(CASE WHEN status = 'won' THEN payout_amount ELSE 0 END), 0) as biggest_win
-       FROM bets WHERE user_id = ?`,
+       FROM bets 
+       WHERE user_id = ?`,
       [userId]
     );
 
     const stats = statsRows[0] || { total_bets: 0, total_won: 0, total_lost: 0, biggest_win: 0 };
     const totalBets = parseInt(stats.total_bets);
 
-    // 2. Compute live wins rate
+    // 2. Compute dynamic win rate
     let winRate = 0;
     if (totalBets > 0) {
       const [winsCountRows] = await pool.query(
@@ -143,7 +144,7 @@ export const getUserStats = async (req, res) => {
       winRate = parseFloat(((winsCount / totalBets) * 100).toFixed(2));
     }
 
-    // 3. Current streak tracker logic (most recent consecutive wins)
+    // 3. Streak tracker logic (most recent consecutive wins)
     const [recentBets] = await pool.query(
       "SELECT status FROM bets WHERE user_id = ? AND status IN ('won', 'lost') ORDER BY created_at DESC LIMIT 50",
       [userId]
@@ -154,11 +155,11 @@ export const getUserStats = async (req, res) => {
       if (bet.status === 'won') {
         currentStreak++;
       } else if (bet.status === 'lost') {
-        break; // Streak broken on latest loss
+        break; // Streak is broken on the latest loss
       }
     }
 
-    // 4. Fetch Referrals counting stats
+    // 4. Fetch Referrals counters
     const [referralCountRows] = await pool.query(
       'SELECT COUNT(id) as total_referrals FROM referrals WHERE referrer_id = ?',
       [userId]
@@ -171,6 +172,7 @@ export const getUserStats = async (req, res) => {
     );
     const totalReferralEarnings = parseFloat(referralEarningsRows[0]?.referral_earnings || 0);
 
+    // 5. Retain exact diagnostic keys to keep client side intact
     return res.json({
       success: true,
       message: 'Gamification stats aggregated.',

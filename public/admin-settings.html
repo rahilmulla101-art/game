@@ -128,17 +128,17 @@
             <h3 class="text-xs uppercase tracking-widest text-red-500 font-bold border-b border-gray-900 pb-2">3. Active Odds Settings</h3>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label class="block text-[10px] text-gray-400 mb-1">Dragon Payout Odds</label>
+                <label class="block text-[10px] text-gray-400 mb-1">colors Payout Odds</label>
                 <input type="number" id="setting-dragon-x" step="0.01" placeholder="1.90" required
                        class="w-full bg-black border border-gray-800 focus:border-red-500/40 rounded-lg py-2.5 px-3 text-xs outline-none text-white focus:ring-1 focus:ring-red-500/10" />
               </div>
               <div>
-                <label class="block text-[10px] text-gray-400 mb-1">Tiger Payout Odds</label>
+                <label class="block text-[10px] text-gray-400 mb-1">dragon vs Tiger Payout Odds</label>
                 <input type="number" id="setting-tiger-x" step="0.01" placeholder="1.90" required
                        class="w-full bg-black border border-gray-800 focus:border-red-500/40 rounded-lg py-2.5 px-3 text-xs outline-none text-white focus:ring-1 focus:ring-red-500/10" />
               </div>
               <div>
-                <label class="block text-[10px] text-gray-400 mb-1">Tie Match Odds</label>
+                <label class="block text-[10px] text-gray-400 mb-1">Number Win Pm     ayouts</label>
                 <input type="number" id="setting-tie-x" step="0.01" placeholder="9.00" required
                        class="w-full bg-black border border-gray-800 focus:border-red-500/40 rounded-lg py-2.5 px-3 text-xs outline-none text-white focus:ring-1 focus:ring-red-500/10" />
               </div>
@@ -174,6 +174,7 @@
         }
 
         const res = await api.getSettings();
+        console.log('Current settings fetched', res);
         if (res.success && res.data) {
           const s = res.data;
           
@@ -182,9 +183,9 @@
           document.getElementById('setting-min-deposit').value = s.min_deposit || '100';
           document.getElementById('setting-min-withdrawal').value = s.min_withdrawal || '200';
           document.getElementById('setting-max-withdrawal').value = s.max_withdrawal || '50000';
-          document.getElementById('setting-dragon-x').value = s.dragon_multiplier || '1.90';
-          document.getElementById('setting-tiger-x').value = s.tiger_multiplier || '1.90';
-          document.getElementById('setting-tie-x').value = s.tie_multiplier || '9.00';
+          document.getElementById('setting-dragon-x').value = s.colors_multiplier || '1.90';
+          document.getElementById('setting-tiger-x').value = s.dragon_multiplier || '1.90';
+          document.getElementById('setting-tie-x').value = s.number_multiplier || '9.00';
         }
       }
 

@@ -21,20 +21,20 @@
   <body class="bg-[#05060a] text-gray-200 min-h-screen flex flex-col md:flex-row overflow-x-hidden">
 
     <!-- Admin Side Panels Navigation -->
-    <aside class="w-full md:w-64 bg-gray-950 border-b md:border-b-0 md:border-r border-red-950/20 px-6 py-6 flex flex-col justify-between shrink-0">
+    <aside class="w-full md:w-64 bg-gray-950 border-b md:border-b-0 md:border-r border-red-950/20 px-6 py-6 flex flex-col justify-between shrink-0 font-mono">
       <div class="space-y-8">
         <div class="flex items-center gap-3">
           <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-red-650 to-red-950 flex items-center justify-center border border-red-500/20">
             <span class="text-lg">⚙️</span>
           </div>
           <div>
-            <h2 class="text-sm font-bold tracking-tight display-font text-white uppercase font-bold">Platform Master</h2>
+            <h2 class="text-sm font-bold tracking-tight display-font text-white uppercase">Platform Master</h2>
             <p class="text-[9px] text-red-500/60 font-mono tracking-widest uppercase">Admin Terminal</p>
           </div>
         </div>
 
-        <nav class="flex flex-col gap-1 text-xs font-semibold font-mono tracking-wider">
-          <a href="/admin-dashboard.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition font-sans">
+        <nav class="flex flex-col gap-1 text-xs font-semibold tracking-wider">
+          <a href="/admin-dashboard.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
             <span>📊</span> Dashboard Overview
           </a>
           <a href="/admin-deposits.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
@@ -48,10 +48,10 @@
           <a href="/admin-users.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl bg-red-950/30 text-red-400 border border-red-900/30">
             <span>👥</span> Users Controller
           </a>
-          <a href="/admin-settings.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
+          <a href="/admin-settings.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition flex font-mono">
             <span>⚙️</span> System Settings
           </a>
-          <a href="/admin-tickets.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition font-mono">
+          <a href="/admin-tickets.html" class="flex items-center gap-2.5 px-3 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition">
             <span>💬</span> Support Tickets
           </a>
         </nav>
@@ -90,32 +90,17 @@
         </div>
       </section>
 
-      <!-- RESULTS LEDGER TABLE -->
-      <section class="overflow-x-auto border border-gray-900 rounded-2xl bg-gray-950/30">
-        <table class="w-full text-left text-xs border-collapse font-mono">
-          <thead>
-            <tr class="border-b border-gray-900 bg-black/40 text-gray-400 font-bold">
-              <th class="p-4">UID</th>
-              <th class="p-4">Full Name</th>
-              <th class="p-4">Mobile No.</th>
-              <th class="p-4">Wallet Balance</th>
-              <th class="p-4">Refer Code</th>
-              <th class="p-4">Status / BAN</th>
-              <th class="p-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="users-table-body">
-            <tr>
-              <td colspan="7" class="p-8 text-center text-gray-500">Retrieving account nodes ledger...</td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- USER RESULTS CARD GRID -->
+      <section id="users-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="col-span-full text-center text-gray-500 py-12">
+          Retrieving account profiles ledger...
+        </div>
       </section>
     </main>
 
     <!-- USER OVERVIEW AND ADJUSTMENTS CARD DETAILS MODAL -->
     <div id="details-modal" class="fixed inset-0 bg-black/85 backdrop-blur-xs hidden items-center justify-center z-50 transition-opacity">
-      <div class="bg-gray-950 border border-red-950/40 p-6 md:p-8 rounded-2xl max-w-lg w-full space-y-6 max-h-[90vh] overflow-y-auto font-mono text-xs text-left">
+      <div class="bg-gray-950 border border-red-950/40 p-6 md:p-8 rounded-2xl max-w-2xl w-full space-y-6 max-h-[90vh] overflow-y-auto font-mono text-xs text-left">
         
         <div class="flex justify-between items-start border-b border-gray-900 pb-4">
           <div>
@@ -125,58 +110,120 @@
           <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-white font-bold cursor-pointer">✕</button>
         </div>
 
-        <!-- Details Info Grid -->
-        <div class="grid grid-cols-2 gap-4 pb-4 border-b border-gray-900">
-          <div>
-            <p class="text-[10px] uppercase font-mono tracking-widest text-gray-500">Current Wallet Balance</p>
-            <p class="text-lg font-extrabold text-amber-500 mt-0.5" id="modal-card-balance">₹0.00</p>
-          </div>
-          <div>
-            <p class="text-[10px] uppercase font-mono tracking-widest text-gray-500">Status Verification</p>
-            <p class="text-xs font-semibold mt-1" id="modal-card-status">Active / Clean</p>
-          </div>
-          <div>
-            <p class="text-[10px] uppercase font-mono tracking-widest text-gray-500">Referral Code</p>
-            <p class="text-xs font-semibold mt-1" id="modal-card-refer">--</p>
-          </div>
-          <div>
-            <p class="text-[10px] uppercase font-mono tracking-widest text-gray-500">Referred By UID</p>
-            <p class="text-xs font-semibold mt-1" id="modal-card-referrer">None</p>
-          </div>
+        <!-- Custom Tabs Navigation -->
+        <div class="flex border-b border-gray-900 gap-2">
+          <button id="tab-btn-audit" onclick="switchModalTab('audit')" class="px-4 py-2 border-b-2 border-red-500 text-white font-bold uppercase tracking-wider text-[10px] cursor-pointer">
+            Audit & Balance
+          </button>
+          <button id="tab-btn-deposits" onclick="switchModalTab('deposits')" class="px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-gray-300 font-bold uppercase tracking-wider text-[10px] cursor-pointer">
+            Deposits
+          </button>
+          <button id="tab-btn-withdrawals" onclick="switchModalTab('withdrawals')" class="px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-gray-300 font-bold uppercase tracking-wider text-[10px] cursor-pointer">
+            Withdraws
+          </button>
         </div>
 
-        <!-- BALANCE ADJUSTMENT WRAPPER -->
-        <div class="space-y-4">
-          <h4 class="text-[10px] uppercase font-mono tracking-wider text-red-500 font-bold block">Credit Audit / Balance Adjustment Form</h4>
-          
-          <form id="form-adjustment" onsubmit="handleAdjustmentSubmit(event)" class="space-y-4 bg-black/40 p-4 rounded-xl border border-gray-850">
-            <input type="hide" id="adjustment-user-id" />
-            
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-[10px] text-gray-400 mb-1">Adjustment Amount (₹)</label>
-                <!-- Allow positive/negative adjustments securely -->
-                <input type="number" id="adjust-amount" step="0.01" placeholder="e.g. 500 or -200" required
-                       class="w-full bg-black border border-gray-800 focus:border-red-500/40 rounded-lg py-2 px-3 text-xs outline-none text-white font-mono focus:ring-1 focus:ring-red-500/10" />
-              </div>
-              <div class="relative">
-                <label class="block text-[10px] text-gray-400 mb-1">Verification Note</label>
-                <input type="text" id="adjust-note" placeholder="Reason for change" required
-                       class="w-full bg-black border border-gray-800 focus:border-red-500/40 rounded-lg py-2 px-3 text-xs outline-none text-white font-sans focus:ring-1 focus:ring-red-500/10" />
-              </div>
+        <!-- Tab Content 1: Audit & Balance Form -->
+        <div id="tab-content-audit" class="space-y-6">
+          <!-- Details Info Grid -->
+          <div class="grid grid-cols-2 gap-4 pb-4 border-b border-gray-900">
+            <div>
+              <p class="text-[10px] uppercase font-mono tracking-widest text-gray-500">Current Wallet Balance</p>
+              <p class="text-lg font-extrabold text-amber-500 mt-0.5" id="modal-card-balance">₹0.00</p>
             </div>
+            <div>
+              <p class="text-[10px] uppercase font-mono tracking-widest text-gray-500">Status Verification</p>
+              <p class="text-xs font-semibold mt-1" id="modal-card-status">Active / Clean</p>
+            </div>
+            <div>
+              <p class="text-[10px] uppercase font-mono tracking-widest text-gray-500">Referral Code</p>
+              <p class="text-xs font-semibold mt-1" id="modal-card-refer">--</p>
+            </div>
+            <div>
+              <p class="text-[10px] uppercase font-mono tracking-widest text-gray-500">Referred By UID</p>
+              <p class="text-xs font-semibold mt-1" id="modal-card-referrer">None</p>
+            </div>
+          </div>
 
-            <button type="submit" class="w-full py-2.5 bg-red-950/60 hover:bg-red-900 border border-red-500/20 text-red-400 hover:text-white text-xs font-bold font-mono tracking-wide rounded-lg transition duration-200 cursor-pointer">
-              EXECUTE BALANCE ADJUSTMENT RECORD
-            </button>
-          </form>
+          <!-- BALANCE ADJUSTMENT WRAPPER -->
+          <div class="space-y-4">
+            <h4 class="text-[10px] uppercase font-mono tracking-wider text-red-500 font-bold block">Credit Audit / Balance Adjustment Form</h4>
+            
+            <form id="form-adjustment" onsubmit="handleAdjustmentSubmit(event)" class="space-y-4 bg-black/40 p-4 rounded-xl border border-gray-850">
+              <input type="hidden" id="adjustment-user-id" />
+              
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-[10px] text-gray-400 mb-1">Adjustment Amount (₹)</label>
+                  <input type="number" id="adjust-amount" step="0.01" placeholder="e.g. 500 or -200" required
+                         class="w-full bg-black border border-gray-800 focus:border-red-500/40 rounded-lg py-2 px-3 text-xs outline-none text-white font-mono focus:ring-1 focus:ring-red-500/10" />
+                </div>
+                <div class="relative">
+                  <label class="block text-[10px] text-gray-400 mb-1">Verification Note</label>
+                  <input type="text" id="adjust-note" placeholder="Reason for change" required
+                         class="w-full bg-black border border-gray-800 focus:border-red-500/40 rounded-lg py-2 px-3 text-xs outline-none text-white font-sans focus:ring-1 focus:ring-red-500/10" />
+                </div>
+              </div>
+
+              <button type="submit" class="w-full py-2.5 bg-red-950/60 hover:bg-red-900 border border-red-500/20 text-red-400 hover:text-white text-xs font-bold font-mono tracking-wide rounded-lg transition duration-200 cursor-pointer">
+                EXECUTE BALANCE ADJUSTMENT RECORD
+              </button>
+            </form>
+          </div>
         </div>
 
+        <!-- Tab Content 2: Deposits History -->
+        <div id="tab-content-deposits" class="hidden space-y-4">
+          <h4 class="text-[10px] uppercase font-mono tracking-wider text-green-500 font-bold block">Recent Deposit Tickets</h4>
+          <div class="overflow-x-auto border border-gray-900 rounded-xl bg-black/40">
+            <table class="w-full text-left text-[11px] border-collapse font-mono">
+              <thead>
+                <tr class="border-b border-gray-900 bg-gray-950 text-gray-500 font-bold">
+                  <th class="p-3">ID</th>
+                  <th class="p-3">Amount</th>
+                  <th class="p-3">UTR Details</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody id="modal-deposits-body">
+                <tr>
+                  <td colspan="5" class="p-4 text-center text-gray-600">Retrieving deposit history...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab Content 3: Withdrawals History -->
+        <div id="tab-content-withdrawals" class="hidden space-y-4">
+          <h4 class="text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold block">Recent Withdrawal Payout Requests</h4>
+          <div class="overflow-x-auto border border-gray-900 rounded-xl bg-black/40">
+            <table class="w-full text-left text-[11px] border-collapse font-mono">
+              <thead>
+                <tr class="border-b border-gray-900 bg-gray-950 text-gray-500 font-bold">
+                  <th class="p-3">ID</th>
+                  <th class="p-3">Amount</th>
+                  <th class="p-3">Payment details</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody id="modal-withdrawals-body">
+                <tr>
+                  <td colspan="5" class="p-4 text-center text-gray-600">Retrieving payout logs...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Bottom Modal Footer -->
         <div class="flex gap-4 border-t border-gray-900 pt-4 justify-between">
-          <button id="modal-ban-btn" onclick="toggleBanDirect()" class="px-4 py-2 bg-red-950/80 hover:bg-red-800 text-red-400 hover:text-white border border-red-750 rounded-lg transition">
+          <button id="modal-ban-btn" onclick="toggleBanDirect()" class="px-4 py-2 bg-red-950/80 hover:bg-red-800 text-red-500 hover:text-white border border-red-750 rounded-lg transition cursor-pointer">
             BAN ACCOUNT
           </button>
-          <button onclick="closeDetailsModal()" class="px-4 py-2 bg-gray-900 border border-gray-850 rounded-lg text-gray-300 hover:text-white transition">
+          <button onclick="closeDetailsModal()" class="px-4 py-2 bg-gray-900 border border-gray-850 rounded-lg text-gray-300 hover:text-white transition cursor-pointer">
             Close Panel
           </button>
         </div>
@@ -209,7 +256,7 @@
         }, 350);
       }
 
-      // Sync and load user lists
+      // Sync and load user lists (Responsive Card layout)
       async function syncUsersTable() {
         const adminUser = localStorage.getItem('dvt_admin_user');
         if (adminUser) {
@@ -219,11 +266,11 @@
         const res = await api.getUsers(currentSearch, currentPage);
         console.log('User List Response:', res);
         if (res.success) {
-          const tbody = document.getElementById('users-table-body');
-          tbody.innerHTML = '';
+          const container = document.getElementById('users-cards-container');
+          container.innerHTML = '';
 
-          if (res.data.users.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-gray-550 italic">No customer profiles fit search terms.</td></tr>`;
+          if (!res.data.users || res.data.users.length === 0) {
+            container.innerHTML = `<div class="col-span-full p-8 text-center text-gray-500 italic">No customer profiles fit search terms.</div>`;
             return;
           }
 
@@ -232,45 +279,101 @@
               ? `<span class="bg-red-950/40 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">BANNED</span>`
               : `<span class="bg-emerald-950/40 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded text-[10px] font-bold">ACTIVE</span>`;
 
-            const tr = document.createElement('tr');
-            tr.className = 'border-b border-gray-905/40 hover:bg-gray-955/20 cursor-pointer';
-            tr.onclick = (e) => {
-              // Exclude direct button clicks inside tr
+            // Create main human card element
+            const card = document.createElement('div');
+            card.className = 'bg-gray-950 border border-gray-900 rounded-2xl p-5 space-y-4 hover:border-red-950/30 hover:bg-gray-950/80 cursor-pointer transition duration-200 shadow-xl';
+            
+            // Allow clicking normal space on card to open general details
+            card.onclick = (e) => {
               if (e.target.tagName !== 'BUTTON') {
-                openDetailsModal(user.id);
+                openDetailsModal(user.id, 'audit');
               }
             };
             
-            tr.innerHTML = `
-              <td class="p-4 text-gray-550">#USR_${user.id}</td>
-              <td class="p-4 font-bold text-white max-w-[150px] truncate">${user.full_name}</td>
-              <td class="p-4 select-all">+91 ${user.mobile}</td>
-              <td class="p-4 text-amber-500 font-bold">₹${parseFloat(user.wallet_balance).toFixed(2)}</td>
-              <td class="p-4 select-all text-gray-400 font-normal">${user.referral_code}</td>
-              <td class="p-4">${statusLabel}</td>
-              <td class="p-4 text-right">
-                <button onclick="openDetailsModal(${user.id})" class="px-2.5 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-850 hover:border-gray-800 rounded transition text-[10px]">Audit File</button>
-              </td>
+            card.innerHTML = `
+              <!-- Meta Header -->
+              <div class="flex justify-between items-start">
+                <div class="space-y-0.5">
+                  <span class="text-[9px] text-gray-600 font-bold uppercase tracking-wide">UID: #USR_${user.id}</span>
+                  <h3 class="text-sm font-bold text-white tracking-tight leading-snug truncate max-w-[140px]">${user.full_name}</h3>
+                </div>
+                <div>
+                  ${statusLabel}
+                </div>
+              </div>
+
+              <!-- Base Card Parameters Details -->
+              <div class="space-y-2 border-t border-gray-900 pt-3 text-[11px]">
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-500">Mobile Number</span>
+                  <span class="text-gray-300 font-sans tracking-tight font-medium select-all">+91 ${user.mobile}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-500">Wallet Balance</span>
+                  <span class="text-amber-500 font-extrabold text-xs">₹${parseFloat(user.wallet_balance).toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-500">Referral Code</span>
+                  <span class="text-gray-400 select-all">${user.referral_code}</span>
+                </div>
+              </div>
+
+              <!-- Action button set -->
+              <div class="pt-3 border-t border-gray-900/50 flex gap-2">
+                <button onclick="openDetailsModal(${user.id}, 'audit')" class="flex-1 py-1.5 bg-gray-900 hover:bg-gray-800 border border-gray-850 rounded-xl transition text-[10px] font-bold tracking-wider uppercase cursor-pointer">
+                  Audit File
+                </button>
+                <button onclick="openDetailsModal(${user.id}, 'deposits')" class="flex-1 py-1.5 bg-green-950/30 hover:bg-green-900 border border-green-950 text-green-400 hover:text-white rounded-xl transition text-[10px] font-bold tracking-wider uppercase cursor-pointer">
+                  Deposits
+                </button>
+                <button onclick="openDetailsModal(${user.id}, 'withdrawals')" class="flex-1 py-1.5 bg-amber-950/30 hover:bg-amber-900 border border-amber-955 text-amber-500 hover:text-white rounded-xl transition text-[10px] font-bold tracking-wider uppercase cursor-pointer">
+                  Withdraws
+                </button>
+              </div>
             `;
-            tbody.appendChild(tr);
+            container.appendChild(card);
           });
         }
       }
 
+      // Modal Tab Switch handler
+      function switchModalTab(tabName) {
+        const tabs = ['audit', 'deposits', 'withdrawals'];
+        tabs.forEach(t => {
+          const btn = document.getElementById(`tab-btn-${t}`);
+          const content = document.getElementById(`tab-content-${t}`);
+          if (t === tabName) {
+            btn.classList.add('border-red-500', 'text-white');
+            btn.classList.remove('border-transparent', 'text-gray-500');
+            content.classList.remove('hidden');
+          } else {
+            btn.classList.remove('border-red-500', 'text-white');
+            btn.classList.add('border-transparent', 'text-gray-500');
+            content.classList.add('hidden');
+          }
+        });
+      }
+
       // Details Modal Coordination
-      async function openDetailsModal(id) {
+      async function openDetailsModal(id, defaultTab = 'audit') {
         const res = await api.getUserDetail(id);
         
         if (res.success && res.data) {
-          const user = res.data;
-          console.log('User Detail Response:', user);
-          console.log('Opening details modal for user ID:', user.user.id);
+          const detailData = res.data;
+          const user = detailData.user;
           
-          document.getElementById('adjustment-user-id').value = user.user.id;
-          document.getElementById('modal-title-fullname').innerText = user.user.full_name;
-          document.getElementById('modal-subtitle-uid').innerText = user.user.id;
-          document.getElementById('modal-card-balance').innerText = `₹${parseFloat(user.user.wallet_balance).toFixed(2)}`;
-          // document.getElementById('modal-card-refer').innerText = user.referral_code;
+          console.log('User Detail Response:', detailData);
+          console.log('Opening details modal for user ID:', user.id);
+          
+          // Reset adjustment form
+          document.getElementById('form-adjustment').reset();
+
+          // Set form IDs and detailed profiles
+          document.getElementById('adjustment-user-id').value = user.id;
+          document.getElementById('modal-title-fullname').innerText = user.full_name;
+          document.getElementById('modal-subtitle-uid').innerText = user.id;
+          document.getElementById('modal-card-balance').innerText = `₹${parseFloat(user.wallet_balance).toFixed(2)}`;
+          document.getElementById('modal-card-refer').innerText = user.referral_code || 'None';
           document.getElementById('modal-card-referrer').innerText = user.referred_by ? `#USR_${user.referred_by}` : 'Organic Signup (None)';
 
           const statusBadge = user.is_banned 
@@ -287,8 +390,65 @@
             banBtn.className = 'px-4 py-2 bg-red-950/80 hover:bg-red-800 text-red-500 hover:text-white border border-red-750 rounded-lg transition cursor-pointer';
           }
 
-          // Reset Form
-          document.getElementById('form-adjustment').reset();
+          // Populate Deposits List
+          const depositsBody = document.getElementById('modal-deposits-body');
+          depositsBody.innerHTML = '';
+          if (detailData.recentDeposits && detailData.recentDeposits.length > 0) {
+            detailData.recentDeposits.forEach(dep => {
+              const depStatus = dep.status === 'approved' 
+                ? `<span class="text-emerald-400 font-bold">APPROVED</span>` 
+                : dep.status === 'rejected' 
+                ? `<span class="text-red-400 font-bold">REJECTED</span>` 
+                : `<span class="text-yellow-500 font-bold">PENDING</span>`;
+
+              const tr = document.createElement('tr');
+              tr.className = 'border-b border-gray-900 hover:bg-gray-900/40';
+              tr.innerHTML = `
+                <td class="p-3 text-gray-550">#DEP_${dep.id}</td>
+                <td class="p-3 font-bold text-white">₹${parseFloat(dep.amount).toFixed(2)}</td>
+                <td class="p-3">
+                  <div class="font-sans text-[10px] text-gray-400">UTR: <span class="select-all text-white font-mono font-medium">${dep.utr_number || 'N/A'}</span></div>
+                </td>
+                <td class="p-3">${depStatus}</td>
+                <td class="p-3 font-mono text-[9px] text-gray-500">${new Date(dep.submitted_at).toLocaleDateString()}</td>
+              `;
+              depositsBody.appendChild(tr);
+            });
+          } else {
+            depositsBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500 italic">No deposit history logs.</td></tr>`;
+          }
+
+          // Populate Withdrawals List
+          const withdrawalsBody = document.getElementById('modal-withdrawals-body');
+          withdrawalsBody.innerHTML = '';
+          if (detailData.recentWithdrawals && detailData.recentWithdrawals.length > 0) {
+            detailData.recentWithdrawals.forEach(withd => {
+              const withStatus = withd.status === 'approved' 
+                ? `<span class="text-emerald-400 font-bold">APPROVED</span>` 
+                : withd.status === 'rejected' 
+                ? `<span class="text-red-400 font-bold">REJECTED</span>` 
+                : `<span class="text-yellow-500 font-bold font-medium animate-pulse">PENDING</span>`;
+
+              const tr = document.createElement('tr');
+              tr.className = 'border-b border-gray-900 hover:bg-gray-900/40';
+              tr.innerHTML = `
+                <td class="p-3 text-gray-550">#WTH_${withd.id}</td>
+                <td class="p-3 font-bold text-white">₹${parseFloat(withd.amount).toFixed(2)}</td>
+                <td class="p-3 text-[10px] space-y-0.5">
+                  <div class="text-gray-300 font-sans">UPI: <span class="select-all font-mono font-medium text-amber-500">${withd.upi_id || 'N/A'}</span></div>
+                  <div class="text-gray-450 text-[9px] font-sans">A/C: ${withd.account_number || 'N/A'} (${withd.ifsc_code || 'N/A'})</div>
+                </td>
+                <td class="p-3">${withStatus}</td>
+                <td class="p-3 font-mono text-[9px] text-gray-500">${new Date(withd.requested_at).toLocaleDateString()}</td>
+              `;
+              withdrawalsBody.appendChild(tr);
+            });
+          } else {
+            withdrawalsBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500 italic">No payouts on record.</td></tr>`;
+          }
+
+          // Force Tab Selection matching caller request
+          switchModalTab(defaultTab);
 
           const modal = document.getElementById('details-modal');
           modal.classList.remove('hidden');
@@ -307,11 +467,9 @@
         if (!confirm('Are you legally certain to execute this block/unblock status adjustment?')) return;
 
         const res = await api.banUser(id);
-        console.log('id',id);
         if (res.success) {
-          api.showToast('success', res.message || 'Status locked successfully.');
-          // Re-open/refresh details
-          openDetailsModal(id);
+          api.showToast('success', res.message || 'Status adjusted successfully.');
+          openDetailsModal(id, 'audit');
           syncUsersTable();
         }
       }
@@ -331,10 +489,11 @@
           return;
         }
 
+        console.log(`Submitting balance adjustment for user ID ${id} with amount ${amount} and note: ${note}`);
         const res = await api.addUserBalance(id, amount, note);
         if (res.success) {
-          api.showToast('success', 'Balance adjustment approved in logging directory!');
-          openDetailsModal(id);
+          api.showToast('success', 'Balance adjustment approved successfully!');
+          openDetailsModal(id, 'audit');
           syncUsersTable();
         }
       }

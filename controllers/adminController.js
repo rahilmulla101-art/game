@@ -708,6 +708,7 @@ export const toggleBanUser = async (req, res) => {
  * Payload: { amount, note }
  */
 export const manualAddBalance = async (req, res) => {
+  console.log('Received manual balance adjustment request with payload:', req.body);
   try {
     const userId = req.params.id;
     const { amount, note } = req.body;

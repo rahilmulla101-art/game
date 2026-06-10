@@ -130,7 +130,28 @@ async function apiCall(method, endpoint, body = null, isFormData = false) {
       return { success: false, error: 'Unauthorized credentials.' };
     }
 
-    const data = await response.json();
+    // 1. Read response body as raw text first
+    const responseText = await response.text();
+    let data = {};
+    
+    // 2. Safely parse ONLY if there is actual text in the response body
+    if (responseText) {
+      try {
+        data = JSON.parse(responseText);
+      } catch (err) {
+        console.error('JSON parsing failed. Raw body text:', responseText);
+        hideLoadingSpinner();
+        showToast('error', 'Server returned invalid format.');
+        return { success: false, error: 'Invalid JSON response.' };
+      }
+    } else {
+      // Create a fallback object for 200/204 No Content responses
+      data = { 
+        success: response.ok, 
+        message: response.ok ? 'Operation completed successfully.' : 'API operation failed.' 
+      };
+    }
+
     hideLoadingSpinner();
 
     if (!response.ok) {
@@ -138,6 +159,7 @@ async function apiCall(method, endpoint, body = null, isFormData = false) {
       return { success: false, error: data.message || 'Network operation failed.' };
     }
 
+    // Standard API wrapper mapping back
     return { success: true, data: data.data, message: data.message };
   } catch (err) {
     hideLoadingSpinner();
@@ -180,6 +202,29 @@ const adminSendOtp = async (
     }
   );
 
+};
+
+// Add these function signatures to api.js:
+const forgotSendOtp = async (mobile) => {
+  return apiCall('POST', 'auth/forgot-send-otp', { mobile });
+};
+
+const changePasswordDirect = async (oldPassword, newPassword) => {
+  return apiCall('POST', 'auth/change-password-direct', { oldPassword, newPassword });
+};
+
+const changePasswordSendOtp = async () => {
+  return apiCall('POST', 'auth/change-password-send-otp');
+};
+const sendChangePasswordOtp = changePasswordSendOtp; // Safety alias
+
+// Change Password - OTP Method (Removed oldPassword parameter)
+const changePasswordOtp = async (otp, newPassword) => {
+  return apiCall('POST', 'auth/change-password-otp', { otp, newPassword });
+};
+// Fix: Name the function resetPassword to match your login.html form, and use the correct endpoint
+const resetPassword = async (mobile, otp, password) => {
+  return apiCall('POST', 'auth/forgot-reset', { mobile, otp, password });
 };
 
 const getMe = async () => {
@@ -330,9 +375,12 @@ const getSettings = async () => {
   return apiCall('GET', 'admin/settings');
 };
 
+
 const updateSettings = async (data) => {
   return apiCall('PUT', 'admin/settings', data);
 };
+
+
 
 const getTicketsAdmin = async (status = '') => {
   return apiCall('GET', `admin/tickets?status=${status}`);
@@ -360,6 +408,9 @@ window.api = {
   getWithdrawalHistory,
   getWithdrawalSettings,
   getUpiSettings,
+    changePasswordDirect,
+  changePasswordSendOtp,
+  changePasswordOtp,
   getCurrentRound,
   getRecentRounds,
   placeBet,
@@ -387,5 +438,7 @@ window.api = {
   updateSettings,
   sendOtp,
   getTicketsAdmin,
+  resetPassword,
+  forgotSendOtp,
   replyTicket
 };

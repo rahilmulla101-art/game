@@ -330,7 +330,7 @@ export const login = async (req, res) => {
     if (!rows || rows.length === 0) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid mobile number or incorrect password credentials.'
+        message: 'Invalid mobile number or incorrect password credentialslllll.'
       });
     }
 
@@ -340,16 +340,37 @@ export const login = async (req, res) => {
     if (matchedUser.is_banned === 1 || matchedUser.status === 'banned') {
       return res.status(403).json({
         success: false,
-        message: 'Your account has been suspended by support team limits.'
+        message: 'Your account has been suspended by support team limits.lllllllllllllfffff'
       });
     }
-
+    console.log("Payload:", { mobile, password });
+    console.log("DB Hash:", matchedUser.password_hash);
     // Match secret credentials passwords
     const isValidPassword = await bcrypt.compare(password, matchedUser.password_hash);
+    // --- ADDED FOR DEBUGINIG BY JUNIOR ---
+console.log('\n======================================');
+console.log('=== PASSWORD & HASH DEVIATION LOG ===');
+console.log('======================================');
+console.log('1. User Mobile:        ', matchedUser.mobile);
+console.log('2. Input Plaintext Pass:', `"${password}"`);
+console.log('3. Input Pass Length:  ', password ? password.length : 0);
+console.log('4. Stored Hash in DB:  ', `"${matchedUser.password_hash}"`);
+console.log('5. Stored Hash Length: ', matchedUser.password_hash ? matchedUser.password_hash.length : 0);
+console.log('6. Stored Hash Type:   ', typeof matchedUser.password_hash);
+console.log('7. Exact Byte Buffer:  ', matchedUser.password_hash ? Buffer.from(matchedUser.password_hash).toString('hex') : 'N/A');
+
+// Let's do a safe test attempt
+try {
+  const check = await bcrypt.compare(password, matchedUser.password_hash);
+  console.log('8. Bcrypt test match:  ', check);
+} catch (e) {
+  console.log('8. Bcrypt test error:  ', e.message);
+}
+console.log('======================================\n');
     if (!isValidPassword) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid mobile number or incorrect password credentials.'
+        message: 'Invalid mobile number or incorrect password credentials. ddddddddd'
       });
     }
 
@@ -386,6 +407,349 @@ export const login = async (req, res) => {
       message: 'Server error parsing authenticated sign-in: ' + error.message,
       data: {}
     });
+  }
+};
+
+// 1. ADD THIS TO YOUR ROUTE CONTROLLERS list in your backend auth flow:
+
+/**
+ * POST /api/auth/forgot-send-otp
+ * Payload: { mobile }
+ */
+/**
+ * POST /api/auth/forgot-send-otp
+ * Request payload: { mobile }
+ */
+export const forgotSendOtp = async (req, res) => {
+  console.log('Forgot Password OTP Request Started', req.body);
+  const { mobile } = req.body;
+
+  try {
+    if (!mobile) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mobile number is required.'
+      });
+    }
+
+    const mobileRegex = /^[6-9]\d{9}$/;
+    if (!mobileRegex.test(mobile)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid mobile number format.'
+      });
+    }
+
+    // Check if the user is registered first! (Unlike sign-up, they MUST exist)
+    const [existingUser] = await pool.query(
+      'SELECT id FROM users WHERE mobile = ?',
+      [mobile]
+    );
+
+    if (existingUser.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Mobile number is not registered on this platform.'
+      });
+    }
+
+    // Generate 6-digit secure OTP code
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`Generated Forgot Pass OTP for ${mobile}: ${otp}`);
+
+    // Flush old temporary OTPs
+    await pool.query('DELETE FROM mobile_otps WHERE mobile = ?', [mobile]);
+
+    // Save the new OTP
+    await pool.query(
+      'INSERT INTO mobile_otps (mobile, otp) VALUES (?, ?)',
+      [mobile, otp]
+    );
+
+    // Send through UltraMsg Instance
+    var data = qs.stringify({
+      "token": "t8ux76qys3z07rho",
+      "to": `+91${mobile}`,
+      "body": `Dragon vs Tiger Arena \n\nRESET CODE: ${otp}\n\nYour OTP to reset your password is valid for 3 minutes. Do not share this pin.`
+    });
+    
+    var config = {
+      method: 'post',
+      url: 'https://api.ultramsg.com/instance179807/messages/chat',
+      headers: {  
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      data: data
+    };
+
+    const ultraResponse = await axios(config);
+    console.log('UltraMsg Forgot OTP Response:', ultraResponse.data);
+
+    // ✅ FIXING THE JSON ERROR: Always return strict JSON
+    return res.json({
+      success: true,
+      message: 'OTP sent to your WhatsApp successfully.'
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Server error sending verification code: ' + error.message
+    });
+  }
+};
+
+/**
+ * POST /api/auth/forgot-reset
+ * Request payload: { mobile, otp, password }
+ */
+/**
+ * POST /api/auth/forgot-reset
+ * Request payload: { mobile, otp, password }
+ */
+export const forgotResetPassword = async (req, res) => {
+  try {
+    const mobile = req.body.mobile?.toString().trim();
+    const otp = req.body.otp?.toString().trim();
+    const password = req.body.password?.toString().trim();
+
+    if (!mobile || !otp || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mobile number, verification OTP, and new password are required.'
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters long.'
+      });
+    }
+
+    // 1. Is there an OTP matching this profile? Force MySQL to return UNIX integer to bypass timezone offsets
+    const [otpRows] = await pool.query(
+      'SELECT *, UNIX_TIMESTAMP(created_at) AS created_timestamp FROM mobile_otps WHERE mobile = ? AND otp = ?',
+      [mobile, otp]
+    );
+
+    if (!otpRows || otpRows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid OTP code received. Please request a new one.'
+      });
+    }
+
+    // 2. Perform Timezone-independent age check
+    const otpRecord = otpRows[0];
+    const createdTimeMs = otpRecord.created_timestamp 
+      ? otpRecord.created_timestamp * 1000 
+      : new Date(otpRecord.created_at).getTime();
+
+    const otpAge = Date.now() - createdTimeMs;
+
+    // Guard against both real expiration (> 3 mins) and future-skewed clocks (< -3 mins)
+    if (otpAge > 3 * 60 * 1000 || otpAge < -3 * 60 * 1000) {
+      await pool.query('DELETE FROM mobile_otps WHERE mobile = ?', [mobile]);
+      return res.status(400).json({
+        success: false,
+        message: 'Your reset OTP has expired. Please try again.'
+      });
+    }
+
+    // 3. Hash the secure new password
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    // 4. Update the database records
+    await pool.query(
+      'UPDATE users SET password_hash = ? WHERE mobile = ?',
+      [passwordHash, mobile]
+    );
+
+    // 5. Flush the consumed OTP record
+    await pool.query('DELETE FROM mobile_otps WHERE mobile = ?', [mobile]);
+
+    return res.json({
+      success: true,
+      message: 'Your password has been successfully updated! You can now log in.'
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Database action crash: ' + error.message
+    });
+  }
+};
+
+/**
+ * POST /api/auth/change-password-direct
+ * Request format: { oldPassword, newPassword }
+ */
+export const changePasswordDirect = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide both current and new passwords.'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters long.'
+      });
+    }
+
+    // 1. Fetch user hash from database
+    const [users] = await pool.query('SELECT password_hash FROM users WHERE id = ?', [userId]);
+    if (!users || users.length === 0) {
+      return res.status(404).json({ success: false, message: 'User profile not found.' });
+    }
+
+    // 2. Compare existing password hash
+    const isMatched = await bcrypt.compare(oldPassword, users[0].password_hash);
+    if (!isMatched) {
+      return res.status(400).json({
+        success: false,
+        message: 'Your current password matches incorrect credentials.'
+      });
+    }
+
+    // 3. Hash and store new credentials
+    const salt = await bcrypt.genSalt(10);
+    const newHash = await bcrypt.hash(newPassword, salt);
+
+    await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, userId]);
+
+    return res.json({
+      success: true,
+      message: 'Password modernized successfully.'
+    });
+
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'System processing error: ' + error.message });
+  }
+};
+
+/**
+ * POST /api/auth/change-password-send-otp
+ * Authenticated handler to dispatch OTP for change confirmation
+ */
+export const changePasswordSendOtp = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Fetch registered mobile number
+    const [users] = await pool.query('SELECT mobile FROM users WHERE id = ?', [userId]);
+    if (!users || users.length === 0) {
+      return res.status(404).json({ success: false, message: 'Identity not found.' });
+    }
+    const mobile = users[0].mobile;
+
+    // Generate 6-digit OTP code to clear previous logs
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await pool.query('DELETE FROM mobile_otps WHERE mobile = ?', [mobile]);
+    await pool.query('INSERT INTO mobile_otps (mobile, otp) VALUES (?, ?)', [mobile, otp]);
+
+    // Dispatch via UltraMsg
+    var data = qs.stringify({
+      "token": "t8ux76qys3z07rho",
+      "to": `+91${mobile}`,
+      "body": `Dragon vs Tiger Arena \n\nCHANGE PASSWORD CODE: ${otp}\n\nYour security confirmation OTP code is valid for 3 minutes. Do not share this pin.`
+    });
+    
+    var config = {
+      method: 'post',
+      url: 'https://api.ultramsg.com/instance179807/messages/chat',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      data: data
+    };
+
+    await axios(config);
+
+    return res.json({
+      success: true,
+      message: 'OTP dispatched to your registered WhatsApp.'
+    });
+
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to dispatch verification: ' + error.message });
+  }
+};
+
+/**
+ * POST /api/auth/change-password-otp
+ * Request format: { otp, newPassword, oldPassword }
+ */
+/**
+ * POST /api/auth/change-password-otp
+ * Request format: { otp, newPassword }
+ */
+export const changePasswordOtp = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { otp, newPassword } = req.body;
+
+    // Validate only OTP and New Password are provided
+    if (!otp || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'OTP code and new password are required.'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters long.'
+      });
+    }
+
+    // 1. Check user state and retrieve registered mobile
+    const [users] = await pool.query('SELECT mobile FROM users WHERE id = ?', [userId]);
+    if (!users || users.length === 0) {
+      return res.status(404).json({ success: false, message: 'Identity target expired.' });
+    }
+    const userMatched = users[0];
+    const mobile = userMatched.mobile;
+
+    // 2. Validate OTP code match
+    const [otpRows] = await pool.query(
+      'SELECT *, UNIX_TIMESTAMP(created_at) AS created_timestamp FROM mobile_otps WHERE mobile = ? AND otp = ?',
+      [mobile, otp]
+    );
+
+    if (!otpRows || otpRows.length === 0) {
+      return res.status(400).json({ success: false, message: 'Invalid verification OTP code.' });
+    }
+
+    // Checking age (3 minutes window)
+    const otpAge = Date.now() - (otpRows[0].created_timestamp * 1000);
+    if (otpAge > 3 * 60 * 1000) {
+      await pool.query('DELETE FROM mobile_otps WHERE mobile = ?', [mobile]);
+      return res.status(400).json({ success: false, message: 'OTP verification expired.' });
+    }
+
+    // 3. Complete changes by hashing new password
+    const salt = await bcrypt.genSalt(10);
+    const newHash = await bcrypt.hash(newPassword, salt);
+
+    await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, userId]);
+    await pool.query('DELETE FROM mobile_otps WHERE mobile = ?', [mobile]);
+
+    return res.json({
+      success: true,
+      message: 'Password updated through cryptographic OTP matching!'
+    });
+
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Verification processing crash: ' + error.message });
   }
 };
 
