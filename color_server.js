@@ -90,7 +90,7 @@ export function initColorGame(io, con) {
     colorNamespace.emit('numberArray', number);
     console.log('A client connected to Color game namespace', socket.id);
 
-    const JWT_SECRET = process.env.JWT_SECRET;
+    const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_dragon_vs_tiger_key';;
 
     socket.on('setUserId', async (token) => {
       console.log('Received token for authentication:', token);
