@@ -761,25 +761,30 @@ const socket = io("https://game-beqs.onrender.com/color", {
     }
     
     // Update UI to reflect the placed bet'
-    const betDiv = document.getElementById('bet_placed');
-    if (betDiv) {
-      betDiv.style.display = 'flex';
-      const conformTypeElement = betDiv.querySelector('#conform_type');
-      const conformAmountElement = betDiv.querySelector('#conform_amount');
-      if (conformTypeElement && conformAmountElement) {
-        conformTypeElement.textContent = color;
-        conformAmountElement.textContent = "Rs. " + amount;
-      }
+const betDiv = document.getElementById('bet_placed');
 
-    } else {
-      console.warn(`Bet div for ${color} not found in the DOM`);
-    }
+if (betDiv) {
+  betDiv.style.display = 'flex';
+  
+  const conformTypeElement = document.getElementById('conform_type');
+  // FIX: Use getElementById instead of getElementsByClassName
+  const conformAmountElement = document.getElementById('conform_amount'); 
+
+  if (conformTypeElement && conformAmountElement) {
+    conformTypeElement.textContent = colorOrNumber.toString().toUpperCase();
+    conformAmountElement.textContent = " ₹ " + amount; // Adding the Rupee symbol
+  }
+
+  // OPTIONAL: Hide the message after 3 seconds so it doesn't stay on screen forever
+  setTimeout(() => {
+    betDiv.style.display = 'none';
+  }, 3000);
+
+} else {
+  console.warn(`Bet div for ${colorOrNumber} not found in the DOM`);
+} 
     // Hide the bet confirmation after 2 seconds
-    setTimeout(() => {
-      if (betDiv) {
-        betDiv.style.display = 'none';
-      }
-    }, 2000);
+
 
     // You can add more UI updates here, such as:
     // - Disabling bet buttons

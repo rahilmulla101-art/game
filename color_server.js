@@ -618,7 +618,7 @@ async function processWinnings(winningNumber, roundId) {
     // STEP 1: Mark ALL bets for this round as 'loss' by default
     // This is faster than iterating through every loser
     await connection.query(
-      "UPDATE color_bets SET status = 'loss', winnings = 0 WHERE round_id = ?",
+      "UPDATE color_bets SET status = 'lost', winnings = 0 WHERE round_id = ?",
       [roundId]
     );
 
@@ -630,7 +630,7 @@ async function processWinnings(winningNumber, roundId) {
       const winnings = betAmount * numMult;
       await updateUserWallet(userId, winnings);
       await connection.query(
-          "UPDATE color_bets SET status = 'win', winnings = ? WHERE round_id = ? AND user_id = ? AND bet_on = ?",
+          "UPDATE color_bets SET status = 'won', winnings = ? WHERE round_id = ? AND user_id = ? AND bet_on = ?",
           [winnings, roundId, userId, winningNumber.toString()]
         );
       emitWin(userId, { number: winningNumber, betAmount, winnings });
@@ -655,7 +655,7 @@ async function processWinnings(winningNumber, roundId) {
         const winnings = betAmount * multiplier;
         await updateUserWallet(userId, winnings);
          await connection.query(
-            "UPDATE color_bets SET status = 'win', winnings = ? WHERE round_id = ? AND user_id = ? AND bet_on = ?",
+            "UPDATE color_bets SET status = 'won', winnings = ? WHERE round_id = ? AND user_id = ? AND bet_on = ?",
             [winnings, roundId, userId, colorName]
           );
         emitWin(userId, { color: colorName, betAmount, winnings });

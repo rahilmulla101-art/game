@@ -465,11 +465,7 @@ tbody.innerHTML = html;
     }
   });
 
-  // ✅ Listen for Bet Placed Confirmation
-  // socket.on('betPlaced', function(data) {
-  //   console.log(`🎯 Bet Placed On: ${data.color} | Amount: ₹${data.amount}`);
-  //   showNotification(`🎯 Bet placed on ${data.color} for ₹${data.amount}!`, 'success');
-  // });
+
 
   // ✅ Listen for Room Stats (Active Players)
   socket.on('roomStats', function(stats) {
@@ -660,7 +656,7 @@ tbody.innerHTML = html;
         wrapper.appendChild(innerDiv);
         
         // Append the new elements to the previous result container
-        document.getElementById('prevous result').appendChild(wrapper);
+        document.getElementById('previous_results').appendChild(wrapper);
     });
 });
 
@@ -762,15 +758,15 @@ tbody.innerHTML = html;
     const betDiv = document.getElementById('bet_placed');
     if (betDiv) {
       betDiv.style.display = 'flex';
-      const conformTypeElement = betDiv.querySelector('#conform_type');
-      const conformAmountElement = betDiv.querySelector('#conform_amount');
+      const conformTypeElement = document.getElementById('conform_type');
+      const conformAmountElement = document.getElementById('conform_amount');
       if (conformTypeElement && conformAmountElement) {
-        conformTypeElement.textContent = color;
+        conformTypeElement.textContent = colorOrNumber.toString().toUpperCase();
         conformAmountElement.textContent = "Rs. " + amount;
       }
 
     } else {
-      console.warn(`Bet div for ${color} not found in the DOM`);
+      console.warn(`Bet div for ${colorOrNumber} not found in the DOM`);
     }
     // Hide the bet confirmation after 2 seconds
     setTimeout(() => {
