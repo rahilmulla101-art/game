@@ -320,9 +320,13 @@
     </div>
     </div>
 
-<script src="/socket.io/socket.io.js"></script>
+<!-- Replace your old script tag with this CDN link -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
-  let socket = io();
+  // Hardcode your Render URL here just like you did in api.js
+const socket = io("https://game-beqs.onrender.com", {
+  transports: ["websocket"] // This is recommended for mobile apps
+});
   let selectedAmount = 100;
   let isBettingOpen = true;
   let userBalance = 0;
@@ -530,14 +534,14 @@
     setTimeout(() => document.getElementById('cardT').classList.add('flipped'), 1000);
   });
 
-  // socket.on('winning_side', (side) => {
-  //   const overlay = document.getElementById('winnerOverlay');
-  //   const video = document.getElementById('winnerVideo');
-  //   document.getElementById('winnerCaption').textContent = side + " WINS";
-  //   video.src = side === 'dragon' ? '/dragon.mp4' : '/tiger.mp4';
-  //   overlay.classList.add('show');
-  //   video.play();
-  // });
+  socket.on('winning_side', (side) => {
+    const overlay = document.getElementById('winnerOverlay');
+    const video = document.getElementById('winnerVideo');
+    document.getElementById('winnerCaption').textContent = side + " WINS";
+    video.src = side === 'dragon' ? '/dragon.mp4' : '/tiger.mp4';
+    overlay.classList.add('show');
+    video.play();
+  });
 
   socket.on('dataToClients', (data) => {
     const preds = document.getElementById('preds');

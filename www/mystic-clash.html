@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mystic Clash – Dragon VS Tiger</title>
+<!-- IDENTIFICATION LINE: Append this styling blocks to your page styles -->
+<style>
+  /* Floating Golden Coin Animation Classes */
+  @keyframes coin-fall {
+    0% {
+      transform: translateY(-5% /* Offscreen */) rotate(0deg) scale(0.6);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(105vh) rotate(360deg) scale(1);
+      opacity: 0;
+    }
+  }
+
+  .coin-particle {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, #fcd34d 0%, #b45309 100%);
+    border: 1px solid #f59e0b;
+    border-radius: 50%;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(255,255,255,0.4);
+    animation-name: coin-fall;
+    animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    animation-fill-mode: forwards;
+  }
+</style>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: system-ui, sans-serif; color: #fff; background: #000; }
+  .app {
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    background-image: linear-gradient(180deg, rgba(10,15,40,.4), rgba(10,15,40,.7)), url("temple-bg.jpg");
+    background-size: cover;
+    background-position: center;
+  }
+
+  /* ===== Header ===== */
+  header { display:flex; justify-content:space-between; padding:10px 12px; align-items:flex-start; }
+  .brand {
+    background: linear-gradient(180deg,#0a3a2a,#062018);
+    border: 2px solid #2bd0a0; border-radius: 14px;
+    padding: 4px 10px 4px 36px; position: relative;
+    box-shadow: 0 0 12px rgba(43,208,160,.5);
+  }
+  .brand .logo {
+    position:absolute; left:-4px; top:-6px; width:36px; height:36px;
+    border-radius:50%; background: radial-gradient(circle,#2bd0a0,#0a3a2a);
+    border:2px solid #2bd0a0; display:flex; align-items:center; justify-content:center;
+    font-size:8px; font-weight:800;
+  }
+  .brand .name { font-size:13px; font-weight:800; color:#2bd0a0; }
+  .brand .sub  { font-size:9px; }
+  .exit-btn {
+    min-width:70px; height:38px; border-radius:10px; padding:0 14px;
+    background: linear-gradient(180deg,#2bd0a0,#0a6a4a);
+    border:2px solid #0a3a2a; color:#fff; font-size:14px; font-weight:800;
+    box-shadow: 0 2px 4px rgba(0,0,0,.5); cursor:pointer;
+  }
+
+  /* ===== Arena ===== */
+  .arena { position: relative; height: 240px; margin-top: 4px; }
+  .arena img.beast { position:absolute; top:30px; width:200px; height:200px; object-fit:contain; }
+  .arena img.dragon { left:-20px; }
+  .arena img.tiger  { right:-20px; }
+  
+  /* My Betting Badges */
+  .my-bet-badge {
+    position: absolute; top: 180px; padding: 4px 10px; border-radius: 8px;
+    background: rgba(0,0,0,0.7); border: 1px solid #f5d76a;
+    font-size: 11px; font-weight: 800; color: #fff; z-index: 10;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5); display: none;
+  }
+  #myBetD { left: 40px; border-color: #3a85d0; }
+  #myBetT { right: 40px; border-color: #e8954a; }
+
+  .timer {
+    position:absolute; top:10px; left:50%; transform:translateX(-50%);
+    width:56px; height:56px; border-radius:50%;
+    background: radial-gradient(circle,#fff5d8,#c98a1a);
+    border:3px solid #f5d76a;
+    display:flex; align-items:center; justify-content:center;
+    color:#3a1f00; font-weight:900; font-size:22px;
+    box-shadow: 0 0 14px rgba(245,215,106,.7);
+    z-index: 20;
+  }
+
+  .cards-row {
+    position:absolute; top:100px; left:50%; transform:translateX(-50%);
+    display:flex; align-items:center; gap:16px; z-index: 15;
+  }
+  .vs {
+    font-size:42px; font-weight:900; font-style:italic; font-family: Georgia, serif;
+    background: linear-gradient(180deg,#fff080,#c98a1a);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 6px rgba(0,0,0,.6);
+  }
+
+  /* ===== Card UI ===== */
+  .card { position:relative; width:56px; height:78px; perspective: 600px; }
+  .card-inner { position:absolute; inset:0; transform-style: preserve-3d; transition: transform .8s cubic-bezier(.6,.05,.28,.99); }
+  .card.flipped .card-inner { transform: rotateY(180deg); }
+  .face {
+    position:absolute; inset:0; border-radius:6px; -webkit-backface-visibility: hidden; backface-visibility: hidden;
+    display:flex; align-items:center; justify-content:center; border:2px solid #f5d76a;
+  }
+  .face.back  { background: linear-gradient(135deg,#2a4a8a,#0a1a4a); }
+  .face.front {
+    background: linear-gradient(180deg,#fff,#e8e0c0); transform: rotateY(180deg);
+    color:#a01010; font-weight:900; font-family: Georgia, serif; flex-direction:column;
+  }
+  .face.front.black { color:#101010; }
+  .face.front .rank { font-size:22px; }
+  .face.front .suit { font-size:18px; }
+
+  /* ===== Table (TIE REMOVED) ===== */
+  .table-wrap { position:relative; margin:8px 4px 4px; padding:0 56px; }
+  .rim {
+    position:relative; border-radius: 40px 40px 18px 18px / 80px 80px 18px 18px;
+    background: linear-gradient(180deg,#f5d76a,#8a5a18); padding: 3px;
+  }
+  .felt {
+    position:relative; border-radius: 38px 38px 16px 16px / 78px 78px 16px 16px;
+    overflow:hidden; background:#0a1a2a; height:250px; display: flex;
+  }
+  .zone { position:relative; height: 100%; width:50%; cursor: pointer; transition: background 0.3s; }
+  .zone.d { background: linear-gradient(180deg,#3a85d0 0%,#1a4a9a 60%,#0a2a6a 100%); border-right: 2px solid rgba(245,215,106,.3); }
+  .zone.t { background: linear-gradient(180deg,#e8954a 0%,#b85a1a 60%,#6a2a08 100%); }
+  
+  .zone .total-label { text-align:center; color:rgba(245,215,106,.6); font-size:9px; font-weight:700; margin-top: 10px; }
+  .zone .total-val { text-align:center; color:#f5d76a; font-weight:800; font-size:18px; text-shadow:0 1px 2px #000; }
+  .chip-area { position:absolute; inset:0; pointer-events: none; }
+
+  /* ===== Predictions ===== */
+  .preds { display:flex; align-items:center; justify-content:center; gap:4px; padding:6px 12px; }
+  .pred {
+    width:22px; height:22px; border-radius:6px; border:1px solid #f5d76a;
+    font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; position:relative;
+  }
+  .pred.t { background: linear-gradient(180deg,#f08a3a,#a04a10); }
+  .pred.d { background: linear-gradient(180deg,#5e3aa8,#2e1a5a); }
+  .pred .new-tag {
+    position:absolute; top:-6px; right:-8px; background:#e83a3a; color:#fff;
+    font-size:7px; font-weight:800; padding:1px 3px; border-radius:3px; animation: pulse 1s infinite;
+  }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+  /* ===== Chip Selector (WITH POP ANIMATION) ===== */
+  .selector { margin:10px 6px 0; padding:8px 6px; border-radius:14px; background: linear-gradient(180deg,#5a3a18,#2a1808); border:2px solid #f5d76a; display:flex; justify-content:space-around; }
+  .big-chip { position:relative; width:58px; height:58px; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .big-chip.active { transform: translateY(-8px) scale(1.15); filter: drop-shadow(0 0 8px #f5d76a); }
+  .big-chip .gold { position:absolute; inset:0; border-radius:50%; background: linear-gradient(180deg,#f5d76a,#a87a1a); }
+  .big-chip .inner { position:absolute; inset:4px; border-radius:50%; border:2px dashed rgba(255,255,255,.9); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:18px; }
+
+  /* ===== Footer & Popups ===== */
+  footer.bar { margin:6px 6px 12px; padding:8px 10px; border-radius:14px; background: linear-gradient(180deg,#3a2208,#1a0f04); border:2px solid #f5d76a; display:flex; align-items:center; gap:8px; position: relative; }
+  .balance { flex:1; background: linear-gradient(180deg,#0a4a3a,#062018); border-radius:16px; padding:8px 12px; border:1px solid #2bd0a0; display:flex; justify-content:space-between; align-items:center; font-weight:700; }
+  
+  .bet-popup {
+    position: absolute; top: -30px; left: 50px; color: #ff3a3a; font-weight: 900; font-size: 16px;
+    pointer-events: none; animation: floatUp 0.8s ease-out forwards; text-shadow: 0 0 5px #000;
+  }
+  @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-40px); } }
+
+  /* Chip Falling Animation */
+  .chip-spawn { position:absolute; transform: translate(-50%,-50%); z-index:5; animation: chipDrop .6s cubic-bezier(.34,1.56,.64,1) both; }
+  @keyframes chipDrop { 0% { transform: translate(-50%,-120px) scale(.4); opacity:0; } 100% { transform: translate(-50%,0) scale(1); opacity:1; } }
+  .chip { border-radius:50%; border: 2px dashed rgba(255,255,255,.8); display:flex; align-items:center; justify-content:center; font-weight:800; }
+
+  /* Winner Overlay */
+  .winner-overlay { position:absolute; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.8); opacity:0; pointer-events:none; transition: opacity 0.3s; }
+  .winner-overlay.show { opacity: 1; pointer-events: auto; }
+  .winner-modal { width: 90%; background: #000; border: 2px solid #f5d76a; border-radius: 15px; overflow: hidden; }
+  .winner-video { width: 100%; display: block; }
+  .winner-caption { padding: 10px; text-align: center; color: #f5d76a; font-weight: 900; text-transform: uppercase; border-top: 1px solid #333; }
+</style>
+</head>
+<body>
+  <div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">MC</div>
+      <div class="name">MysticClash</div>
+      <div class="sub">Dragon VS Tiger</div>
+    </div>
+    <button class="exit-btn" onclick="window.location.href='game.html'">Exit</button>
+  </header>
+
+  <section class="arena">
+    <img class="beast dragon" src="dragon.png">
+    <img class="beast tiger"  src="tiger.png">
+    
+    <!-- My Bet Badges -->
+    
+    <!-- <div id="myBetT" class="my-bet-badge">My Bet: ₹0</div> -->
+
+    <div class="timer" id="timer">--</div>
+    
+    <div class="cards-row">
+      <div class="card" id="cardD">
+        <div class="card-inner">
+          <div class="face back"></div>
+          <div class="face front" id="frontD"><div class="rank"></div><div class="suit"></div></div>
+        </div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="card" id="cardT">
+        <div class="card-inner">
+          <div class="face back"></div>
+          <div class="face front" id="frontT"><div class="rank"></div><div class="suit"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="preds" id="preds"></div>
+
+  <section class="table-wrap">
+    <div class="rim">
+      <div class="felt">
+        <div class="zone d" onclick="placeBet('dragon')">
+          <div class="total-label">TOTAL BET</div>
+          <div id="myBetD" class="my-bet-badge">My Bet: ₹0</div>
+          <div class="total-val" id="dragonTotal">0</div>
+          <div class="chip-area" id="chipAreaD"></div>
+        </div>
+        <div class="zone t" onclick="placeBet('tiger')">
+          <div class="total-label">TOTAL BET</div>
+          <div id="myBetT" class="my-bet-badge">My Bet: ₹0</div>
+          <div class="total-val" id="tigerTotal">0</div>
+          <div class="chip-area" id="chipAreaT"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="selector" id="selector">
+    <div class="big-chip" onclick="selectChip('10', this)"><div class="gold"></div><div class="inner" style="background:#2bb573">10</div></div>
+    <div class="big-chip" onclick="selectChip('50', this)"><div class="gold"></div><div class="inner" style="background:#3aa6e8">50</div></div>
+    <div class="big-chip active" onclick="selectChip('100', this)"><div class="gold"></div><div class="inner" style="background:#a455c8">100</div></div>
+    <div class="big-chip" onclick="selectChip('500', this)"><div class="gold"></div><div class="inner" style="background:#e85a4f">500</div></div>
+  </section>
+
+  <footer class="bar">
+    <div id="betPopContainer"></div>
+    <div class="user-pic">U</div>
+    <div class="balance"><span id="balance">0.00</span><button class="plus">+</button></div>
+    <button class="gear">⚙</button>
+  </footer>
+
+  <div class="winner-overlay" id="winnerOverlay">
+    <div class="winner-modal">
+        <video class="winner-video" id="winnerVideo" playsinline></video>
+        <div class="winner-caption" id="winnerCaption">Winner</div>
+    </div>
+  </div>
+</div>
+<!-- IDENTIFICATION LINE: Add this overlay container at the bottom of <body> -->
+<!-- WINNING CELEBRATION MODAL OVERLAY -->
+<div id="win-celebration-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center z-[9999] overflow-hidden">
+  
+  <!-- Pulsating golden magic light behind the card -->
+  <div class="absolute w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-amber-500/20 to-red-600/10 blur-[120px] animate-pulse"></div>
+  
+  <!-- Coins exploding layer -->
+  <div id="coin-particles-container" class="absolute inset-0 pointer-events-none"></div>
+
+  <!-- Win Announcement Card -->
+  <div id="win-card" class="relative max-w-sm w-full mx-4 bg-gray-950 border border-amber-500/30 rounded-3xl p-8 text-center shadow-[0_0_50px_rgba(245,158,11,0.15)] transform scale-50 opacity-0 transition-all duration-500 ease-out">
+    
+    <!-- Congratulations Light Explosion Cup -->
+    <div class="relative mx-auto w-24 h-24 mb-6 flex items-center justify-center">
+      <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-amber-500 to-red-500 opacity-25 blur-xl animate-ping"></div>
+      <div class="w-20 h-20 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-red-500 flex items-center justify-center border-2 border-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.4)]">
+        <span class="text-4xl animate-bounce">🏆</span>
+      </div>
+    </div>
+
+    <!-- Excitation Metadata -->
+    <h3 class="text-xs uppercase font-mono tracking-[0.25em] text-amber-500/80 mb-1">VICTORY ROUND</h3>
+    <h2 id="win-title-side" class="text-3xl font-black display-font text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-300 to-amber-500 drop-shadow-md">
+      TIGER WINS! 🐅
+    </h2>
+
+    <!-- Dynamic Payout Section -->
+    <div class="my-6">
+      <p class="text-[10px] text-gray-550 font-mono tracking-wider uppercase">YOUR PAYOUT</p>
+      <div class="relative inline-block mt-2">
+<span id="win-amount" class="text-5xl font-extrabold display-font tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-500 drop-shadow-[0_4px_15px_rgba(245,158,11,0.4)] block">
+          +₹0.00
+        </span>
+      </div>
+    </div>
+
+    <!-- Instantly Credited Note -->
+    <p class="text-[11px] text-emerald-400 font-mono bg-emerald-950/40 border border-emerald-500/20 py-2 px-3 rounded-xl inline-block mb-6">
+      ⚡ Credited instantly to your wallet!
+    </p>
+
+    <!-- Dismiss Button -->
+    <button onclick="closeWinCelebration()" class="w-full py-4 bg-gradient-to-r from-red-600 via-amber-500 to-amber-400 hover:from-amber-400 hover:to-red-600 text-black text-xs font-bold tracking-widest uppercase rounded-xl transition duration-300 shadow-xl shadow-amber-500/10 cursor-pointer active:scale-95">
+      CLAIM & RETURN TO ARENA
+    </button>
+    </div>
+    </div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  let socket = io();
+  let selectedAmount = 100;
+  let isBettingOpen = true;
+  let userBalance = 0;
+
+  // Configuration
+  const chipColors = { "10": "#2bb573", "50": "#3aa6e8", "100": "#a455c8", "500": "#e85a4f" };
+  const RANKS = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+  const SUITS = { A: {s:"♥", r:true}, B: {s:"♦", r:true}, C: {s:"♣", r:false}, D: {s:"♠", r:false} };
+
+  // UI: Select Chip with Animation
+  function selectChip(amount, el) {
+    selectedAmount = parseInt(amount);
+    document.querySelectorAll('.big-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // UI: Show Bet Response Popup
+  function showBetPopup(amount) {
+    const pop = document.createElement("div");
+    pop.className = "bet-popup";
+    pop.textContent = `-₹${amount}`;
+    document.getElementById("betPopContainer").appendChild(pop);
+    setTimeout(() => pop.remove(), 800);
+  }
+
+  // UI: Animate Chip Placement
+  function spawnChip(side, value) {
+    const area = side === 'dragon' ? document.getElementById('chipAreaD') : document.getElementById('chipAreaT');
+    const color = chipColors[value] || "#fff";
+    const chip = document.createElement("div");
+    chip.className = "chip-spawn";
+    chip.style.left = (20 + Math.random() * 60) + "%";
+    chip.style.top = (20 + Math.random() * 60) + "%";
+    chip.innerHTML = `<div class="chip" style="width:28px;height:28px;background:${color}">${value}</div>`;
+    area.appendChild(chip);
+    // setTimeout(() => chip.remove(), 800);
+  }
+
+  // UI: Set Card Values
+  function setCard(side, rank, type) {
+    const front = document.getElementById(side === 'dragon' ? 'frontD' : 'frontT');
+    const suitData = SUITS[type] || SUITS.A;
+    front.querySelector(".rank").textContent = RANKS[rank-1];
+    front.querySelector(".suit").textContent = suitData.s;
+    front.style.color = suitData.r ? "#a01010" : "#101010";
+  }
+
+  // Socket Logic
+  socket.on('connect', () => {
+    const token = localStorage.getItem('dvt_token');
+    socket.emit('setUserId', token);
+  });
+
+  socket.on('count', (data) => {
+    const timer = document.getElementById('timer');
+    if(data.A > 0) {
+        timer.textContent = data.A;
+        timer.style.color = "#3a1f00";
+    } else {
+        timer.textContent = "00";
+    }
+  });
+
+  // ==========================================
+  // JUNIOR IMPLEMENTATION: WIN CELEBRATION
+  // ==========================================
+
+    function triggerWinCelebration(amount, side) {
+          console.log("winning side ",side,amount);
+    const modal = document.getElementById('win-celebration-modal');
+    const card = document.getElementById('win-card');
+    const winTitle = document.getElementById('win-title-side');
+    const winAmount = document.getElementById('win-amount');
+
+    if (!modal || !card){
+      console.error("Win celebration elements not found in DOM."); 
+      return;
+    }
+    
+
+    // Adapt contents based on winning side dynamically
+    const isDragon = side === 'dragon';
+    winTitle.innerHTML = isDragon ? 'DRAGON WINS! 🐉' : 'TIGER WINS! 🐅';
+    winAmount.textContent = `+₹${parseFloat(amount).toFixed(2)}`;
+
+    // Display the overlay frame
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    // Trigger entering scale transition for the win card
+    setTimeout(() => {
+      card.classList.remove('scale-50', 'opacity-0');
+      card.classList.add('scale-100', 'opacity-100');
+    }, 50);
+
+    // Launch golden particle explosion!
+    spawnCelebrationCoins();
+  }
+
+  // Catch the winning payout event from the server
+  socket.on('winningAmount', (data) => {
+
+    // Expected payload: { amount: number, side: 'dragon' | 'tiger' }
+    if (data && data.amount > 0) {
+      triggerWinCelebration(data.amount, data.side);
+    }
+  });
+
+  // Main trigger to show the modal and initiate effects
+
+  // Dynamic coin particle generator
+  function spawnCelebrationCoins() {
+    const container = document.getElementById('coin-particles-container');
+    if (!container) return;
+
+    container.innerHTML = ''; // Flush any old particles
+    const coinCount = 35;     // Clean balance for rendering performance
+
+    for (let i = 0; i < coinCount; i++) {
+      const coin = document.createElement('div');
+      coin.className = 'coin-particle';
+
+      // Distribute randomly across horizontal range and stagger entry delays
+      const leftOffset = Math.random() * 100;       // Left start coordinate (0-100%)
+      const scaleFactor = 0.5 + Math.random() * 0.75; // Diverse depths
+      const speed = 1.5 + Math.random() * 1.5;      // Descent speed variation (1.5s to 3.0s)
+      const staggerDelay = Math.random() * 1.2;     // Smooth staggered flow
+
+      coin.style.left = `${leftOffset}%`;
+      coin.style.transform = `scale(${scaleFactor})`;
+      coin.style.animationDuration = `${speed}s`;
+      coin.style.animationDelay = `${staggerDelay}s`;
+
+      container.appendChild(coin);
+    }
+  }
+
+  // Handle interactive dismiss & return action
+  function closeWinCelebration() {
+    const modal = document.getElementById('win-celebration-modal');
+    const card = document.getElementById('win-card');
+
+    if (!modal || !card) return;
+
+    // Scale down animation transition
+    card.classList.remove('scale-100', 'opacity-100');
+    card.classList.add('scale-50', 'opacity-0');
+
+    // Remove frame from rendering once transition wraps up
+    setTimeout(() => {
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+      
+      const container = document.getElementById('coin-particles-container');
+      if (container) container.innerHTML = ''; // Clean memory footpaths
+    }, 400);
+  }
+
+  socket.on('round_start', () => {
+    isBettingOpen = true;
+    document.getElementById('chipAreaT').innerHTML = ""; 
+    document.getElementById('chipAreaD').innerHTML = ""; 
+    document.getElementById('cardD').classList.remove('flipped');
+    document.getElementById('cardT').classList.remove('flipped');
+    document.getElementById('dragonTotal').textContent = "0";
+    document.getElementById('tigerTotal').textContent = "0";
+    document.getElementById('myBetD').style.display = "none";
+    document.getElementById('myBetT').style.display = "none";
+    document.getElementById('winnerOverlay').classList.remove('show');
+  });
+
+  socket.on('disable', () => {
+    isBettingOpen = false;
+    document.getElementById('timer').textContent = "🔒";
+  });
+
+  socket.on('walet', (res) => {
+    userBalance = res.data;
+    document.getElementById('balance').textContent = parseFloat(res.data).toFixed(2);
+  });
+
+  socket.on('currentBetting', (data) => {
+    if(data.dragon_side > 0) {
+        const d = document.getElementById('myBetD');
+        d.textContent = `My Bet: ₹${data.dragon_side}`;
+        d.style.display = "block";
+    }
+    if(data.tiger_side > 0) {
+        const t = document.getElementById('myBetT');
+        t.textContent = `My Bet: ₹${data.tiger_side}`;
+        t.style.display = "block";
+    }
+  });
+
+  socket.on('coinSpawned', (data) => {
+    spawnChip(data.side, data.value);
+    const totalEl = document.getElementById(data.side + 'Total');
+    totalEl.textContent = parseInt(totalEl.textContent) + data.value;
+  });
+
+  socket.on('round_result', (data) => {
+    setCard('tiger', data.L, data.O);
+    setCard('dragon', data.M, data.N);
+    setTimeout(() => document.getElementById('cardD').classList.add('flipped'), 200);
+    setTimeout(() => document.getElementById('cardT').classList.add('flipped'), 1000);
+  });
+
+  socket.on('winning_side', (side) => {
+    const overlay = document.getElementById('winnerOverlay');
+    const video = document.getElementById('winnerVideo');
+    document.getElementById('winnerCaption').textContent = side + " WINS";
+    video.src = side === 'dragon' ? '/dragon.mp4' : '/tiger.mp4';
+    overlay.classList.add('show');
+    video.play();
+  });
+
+  socket.on('dataToClients', (data) => {
+    const preds = document.getElementById('preds');
+    preds.innerHTML = "";
+    data.forEach((res, i) => {
+        const div = document.createElement('div');
+        div.className = `pred ${res.toLowerCase()}`;
+        div.textContent = res;
+        if(i === data.length - 1) div.innerHTML += `<div class="new-tag">NEW</div>`;
+        preds.appendChild(div);
+    });
+  });
+
+  function placeBet(side) {
+    if(!isBettingOpen) return;
+    if(userBalance < selectedAmount) return alert("Insufficient Balance");
+    
+    showBetPopup(selectedAmount);
+    socket.emit('betting', {
+      userId: localStorage.getItem('dvt_token'),
+      inputValue: selectedAmount,
+      side: side
+    });
+  }
+</script>
+
+  </div>
+</div>
+</body>
+</html>

@@ -29,6 +29,8 @@ export function initDragonTiger(io, con) {
   var bettingOpen = false;
 
   io.on('connection', (socket) => {
+
+
     if(A > 8){
       socket.emit("round_start");
     }
@@ -286,8 +288,9 @@ export function initDragonTiger(io, con) {
             FROM site_settings
             WHERE setting_key = ?
             `,
-            ['dragonvstiger_multiplier']
+            ['dragon_multiplier']
           );
+          console.log("Multiplier Setting:", settingRows.length > 0 ? settingRows[0].setting_value : "Not Set");
 
           const multiplier =
             settingRows.length > 0

@@ -173,7 +173,7 @@ tbody.innerHTML = html;
 
   if (!token) {
     alert('⚠️ Unauthorized: No authentication token found. Please login first.');
-    window.location.href = '/login.html';
+    window.location.href = 'index.html';
     return;
   }
 
@@ -439,11 +439,13 @@ tbody.innerHTML = html;
   }
 
   // Connect to the socket with token for authentication
-  const socket = io('/color', {
-    auth: {
-      token: token
-    }
-  });
+// Hardcode your Render URL + the namespace
+const socket = io("https://game-beqs.onrender.com/color", {
+  transports: ["websocket"], // Required for more stable mobile connections
+  auth: {
+    token: token
+  }
+});
 
   // Function to handle betting
   function placeBet(side, amount) {
@@ -1259,14 +1261,14 @@ socket.emit('getUserBets', (response) => {
 
   // Back button functionality - redirect to dashboard (secure)
   document.getElementById('Back').addEventListener('click', function() {
-    window.location.href = '/game.html';
+    window.location.href = 'game.html';
   });
 
   // Handle auth errors
   socket.on('auth_error', function(data) {
     console.error('Authentication error:', data.message);
     alert('❌ ' + data.message);
-    window.location.href = '/login.html';
+    window.location.href = 'index.html';
   });
 
   // Handle connection errors

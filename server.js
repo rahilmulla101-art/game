@@ -107,9 +107,17 @@ const upload = multer({
 // Initialize Socket.IO server on top of HTTP server
 const io = new Server(server, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
+    // Add these specific origins for Capacitor (Android & iOS)
+    origin: [
+      "http://localhost",
+      "capacitor://localhost",
+      "https://game-beqs.onrender.com" // Your Render URL
+    ],
+    methods: ['GET', 'POST'],
+    credentials: true
+  },
+  // Adding transport settings for better mobile stability
+  transports: ['websocket', 'polling'] 
 });
 
 // Set global handle reference for easy service actions

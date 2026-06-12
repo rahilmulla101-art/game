@@ -463,7 +463,7 @@ export function initColorGame(io, con) {
     colorGameState.isSpinning = true;
     colorNamespace.emit('wheelSpinning');
 
-    const result = determineWinningColor();
+    const result = await determineWinningColor();
     colorGameState.currentColor = result;
     
     await processWinnings(result);
@@ -479,120 +479,137 @@ export function initColorGame(io, con) {
       setTimeout(startColorGame, 5000);
     }, 2000);
   }
+async function getMultipliers() {
+  try {
+    const connection = await con.getConnection();
+    // Querying based on setting_key
+    const [rows] = await connection.query(
+      "SELECT setting_key, setting_value FROM site_settings WHERE setting_key IN ('colors_multiplier', 'number_multiplier')"
+    );
+    connection.release();
 
-  function determineWinningColor() {
-    const totalBets = colorGameState.totalBets;
-    console.log("Total bets:", totalBets);
-    console.log("Red bets:", totalBets.red);
-    console.log("Violet bets:", totalBets.violet);
-    console.log("Green bets:", totalBets.green);
-  
-    console.log("Individual Red bets:", Array.from(colorGameState.bets.red.entries()));
-    console.log("Individual Violet bets:", Array.from(colorGameState.bets.violet.entries()));
-    console.log("Individual Green bets:", Array.from(colorGameState.bets.green.entries()));
-  
-    const numberToColor = {
-      0: 'violet', 1: 'green', 2: 'red', 3: 'green', 4: 'red',
-      5: 'violet', 6: 'red', 7: 'green', 8: 'red', 9: 'green'
-    };
-  
-    const totalBetsByNumber = Array(10).fill(0);
-    const potentialPayouts = Array(10).fill(0);
-  
-    for (let i = 0; i < 10; i++) {
-      totalBetsByNumber[i] = Array.from(colorGameState.bets[i.toString()].values()).reduce((a, b) => a + b, 0);
-  
-      if (i === 0) {
-        potentialPayouts[i] = (totalBetsByNumber[i] * 9) + (totalBets.violet * 5) + (totalBets.red * 0.5);
-      } else if (i === 5) {
-        potentialPayouts[i] = (totalBetsByNumber[i] * 9) + (totalBets.violet * 5) + (totalBets.green * 0.5);
-      } else {
-        const numberMultiplier = 9;
-        const colorMultiplier = 2;
-        potentialPayouts[i] = (totalBetsByNumber[i] * numberMultiplier) + (totalBets[numberToColor[i]] * colorMultiplier);
-      }
-  
-      console.log(`Number ${i} potential payout: ${potentialPayouts[i]}`);
+    // Default values
+    let multipliers = { color: 2, number: 9 };
+
+    if (rows && rows.length > 0) {
+      rows.forEach(row => {
+        if (row.setting_key === 'colors_multiplier') multipliers.color = Number(row.setting_value);
+        if (row.setting_key === 'number_multiplier') multipliers.number = Number(row.setting_value);
+      });
     }
-  
-    const minPayout = Math.min(...potentialPayouts);
-    const numbersWithMinPayout = potentialPayouts.map((payout, index) => payout === minPayout ? index : -1).filter(index => index !== -1);
-  
-    console.log("Numbers with minimum potential payout:", numbersWithMinPayout);
-  
-    const randomIndex = Math.floor(Math.random() * numbersWithMinPayout.length);
-    const winningNumber = numbersWithMinPayout[randomIndex];
-    const winningColor = numberToColor[winningNumber];
-    color_won = winningColor;
-    number_won = winningNumber;
-    console.log("Winning number:", winningNumber);
-    console.log("Winning color:", winningColor);
+    return multipliers;
+  } catch (err) {
+    console.error("❌ Error fetching multipliers from DB:", err);
+    return { color: 2, number: 9 }; // Emergency fallback
+  }
+}
 
-    number.shift();
-    number.push(winningNumber);
+async function determineWinningColor() {
+  const settings = await getMultipliers();
+  const numMult = settings.number; 
+  const colMult = settings.color;  
+  
+  // Ratios for special numbers 0 and 5
+  const violetSplit = (numMult / 2) + 0.5; // e.g. 5 if numMult is 9
+  const colorSplit = 0.5;                  // 0.5x win for red/green on 0/5
 
-    console.log("Updated number array:", number);
-    return winningNumber;
+  const numberToColor = {
+    0: 'violet', 1: 'green', 2: 'red', 3: 'green', 4: 'red',
+    5: 'violet', 6: 'red', 7: 'green', 8: 'red', 9: 'green'
+  };
+
+  const potentialPayouts = Array(10).fill(0);
+
+  for (let i = 0; i < 10; i++) {
+    const totalBetsByNumber = Array.from(colorGameState.bets[i.toString()].values()).reduce((a, b) => a + b, 0);
+
+    if (i === 0) {
+      potentialPayouts[i] = (totalBetsByNumber * numMult) + 
+                            (colorGameState.totalBets.violet * violetSplit) + 
+                            (colorGameState.totalBets.red * colorSplit);
+    } else if (i === 5) {
+      potentialPayouts[i] = (totalBetsByNumber * numMult) + 
+                            (colorGameState.totalBets.violet * violetSplit) + 
+                            (colorGameState.totalBets.green * colorSplit);
+    } else {
+      const associatedColor = numberToColor[i];
+      potentialPayouts[i] = (totalBetsByNumber * numMult) + 
+                            (colorGameState.totalBets[associatedColor] * colMult);
+    }
   }
 
-  async function processWinnings(winningNumber) {
-    const numberToColor = {
-      0: 'violet', 1: 'green', 2: 'red', 3: 'green', 4: 'red',
-      5: 'violet', 6: 'red', 7: 'green', 8: 'red', 9: 'green'
-    };
+  const minPayout = Math.min(...potentialPayouts);
+  const numbersWithMinPayout = potentialPayouts
+    .map((payout, index) => (payout === minPayout ? index : -1))
+    .filter(index => index !== -1);
 
-    const winningColor = numberToColor[winningNumber];
-    const colorPayouts = winningNumber === 0
-      ? { violet: 5, red: 0.5 }
-      : winningNumber === 5
-        ? { violet: 5, green: 0.5 }
-        : { [winningColor]: 2 };
+  const winningNumber = numbersWithMinPayout[Math.floor(Math.random() * numbersWithMinPayout.length)];
+  
+  // Assign to global variables
+  color_won = numberToColor[winningNumber];
+  number_won = winningNumber;
 
-    // Process winnings for the winning number
-    for (const [userId, betAmount] of colorGameState.bets[winningNumber.toString()]) {
-      const numberMultiplier = 9;
-      const actualWinnings = betAmount * numberMultiplier;
+  number.shift();
+  number.push(winningNumber);
 
-      const userSocket = Array.from(colorNamespace.sockets.values()).find(s => s.userId === userId);
-      if (userSocket) {
-        userSocket.emit('winResult', {
-          number: winningNumber,
-          betAmount: betAmount,
-          winnings: actualWinnings
-        });
-      }
-      console.log(`✅ Win for user ${userId}: number=${winningNumber}, bet=${betAmount}, winnings=${actualWinnings}`);
-      await updateUserWallet(userId, actualWinnings);
+  return winningNumber;
+}
+
+async function processWinnings(winningNumber) {
+  const settings = await getMultipliers();
+  const numMult = settings.number;
+  const colMult = settings.color;
+
+  const violetSplit = (numMult / 2) + 0.5;
+  const colorSplit = 0.5;
+
+  const numberToColor = {
+    0: 'violet', 1: 'green', 2: 'red', 3: 'green', 4: 'red',
+    5: 'violet', 6: 'red', 7: 'green', 8: 'red', 9: 'green'
+  };
+
+  const winningColor = numberToColor[winningNumber];
+
+  // 1. Process Number Wins
+  // Safety check: ensure the map exists before iterating
+  const numberBets = colorGameState.bets[winningNumber.toString()];
+  if (numberBets && numberBets instanceof Map) {
+    for (const [userId, betAmount] of numberBets) {
+      const winnings = betAmount * numMult;
+      await updateUserWallet(userId, winnings);
+      emitWin(userId, { number: winningNumber, betAmount, winnings });
     }
+  }
 
-    // Process winnings for winning color rules
-    for (const [color, colorMultiplier] of Object.entries(colorPayouts)) {
-      for (const [userId, betAmount] of colorGameState.bets[color]) {
-        const actualWinnings = betAmount * colorMultiplier;
-        const userSocket = Array.from(colorNamespace.sockets.values()).find(s => s.userId === userId);
-        if (userSocket) {
-          userSocket.emit('winResult', {
-            color: color,
-            betAmount: betAmount,
-            winnings: actualWinnings
-          });
-        }
+  // 2. Process Color Wins
+  let colorPayouts = {};
+  if (winningNumber === 0) {
+    colorPayouts = { violet: violetSplit, red: colorSplit };
+  } else if (winningNumber === 5) {
+    colorPayouts = { violet: violetSplit, green: colorSplit };
+  } else {
+    colorPayouts = { [winningColor]: colMult };
+  }
 
-        console.log(`✅ Win for user ${userId}: color=${color}, bet=${betAmount}, winnings=${actualWinnings}`);
-        await updateUserWallet(userId, actualWinnings);
-      }
-    }
-
-    // Losing bets - balance already deducted on placeBet, log only
-    const paidBetKeys = new Set([winningNumber.toString(), ...Object.keys(colorPayouts)]);
-    for (const key of Object.keys(colorGameState.bets)) {
-      if (!paidBetKeys.has(key)) {
-        for (const [userId, betAmount] of colorGameState.bets[key]) {
-          console.log(`❌ Loss for user ${userId}: bet on ${key}, amount ${betAmount}`);
-        }
+  for (const [colorName, multiplier] of Object.entries(colorPayouts)) {
+    const colorBets = colorGameState.bets[colorName];
+    if (colorBets && colorBets instanceof Map) {
+      for (const [userId, betAmount] of colorBets) {
+        const winnings = betAmount * multiplier;
+        await updateUserWallet(userId, winnings);
+        emitWin(userId, { color: colorName, betAmount, winnings });
       }
     }
   }
+}
+
+// Helper to keep code clean
+function emitWin(userId, data) {
+  const userSocket = Array.from(colorNamespace.sockets.values()).find(s => s.userId === userId);
+  if (userSocket) {
+    userSocket.emit('winResult', data);
+  }
+}
 
   // --- MODIFICATION 3: Added winning payouts solely directly to withdraw_wallet ---
   async function updateUserWallet(userId, amount) {
