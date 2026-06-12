@@ -429,6 +429,38 @@ export function initColorGame(io, con) {
 
   function startColorGame() {
     colorGameState.round++;
+     const connection =  con.getConnection();
+  try {
+    // 1. Generate a Period Number (Format: YYYYMMDD + sequence)
+    // Example: 202310270001
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
+    
+    // Get count of rounds today to increment sequence
+    const [rows] = connection.query(
+      "SELECT COUNT(*) as count FROM color_rounds WHERE DATE(created_at) = CURDATE()"
+    );
+    const sequence = (rows[0].count + 1).toString().padStart(4, '0');
+    const periodNumber = dateStr + sequence;
+
+    // 2. Insert the new round into the database
+    const [result] =  connection.query(
+      `INSERT INTO color_rounds (period_number, status, betting_open_at, created_at, updated_at) 
+       VALUES (?, 'betting_open', NOW(), NOW(), NOW())`,
+      [periodNumber]
+    );
+
+    // Update local state with the DB ID and Period Number
+    colorGameState.dbId = result.insertId; 
+    colorGameState.round = periodNumber; 
+    
+    console.log(`🚀 New Round Started: ID ${colorGameState.dbId}, Period ${periodNumber}`);
+
+  } catch (err) {
+    console.error("❌ Error starting new round in DB:", err);
+  } finally {
+    connection.release();
+  }
     colorNamespace.emit('numberArray', number);
     colorGameState.timeRemaining = 30;
     colorGameState.isSpinning = false;
@@ -462,11 +494,19 @@ export function initColorGame(io, con) {
   async function spinWheel() {
     colorGameState.isSpinning = true;
     colorNamespace.emit('wheelSpinning');
+          const winningNumber = await determineWinningColor();
+          colorGameState.currentColor = winningNumber;
 
-    const result = await determineWinningColor();
-    colorGameState.currentColor = result;
+    if (colorGameState.dbId) {
+    await processWinnings(winningNumber, colorGameState.dbId);
+  }
+
+
+
+    // const result = await determineWinningColor();
+    // colorGameState.currentColor = result;
     
-    await processWinnings(result);
+    // await processWinnings(result);
     
     setTimeout(() => {
       colorNamespace.emit('gameResult', result);
@@ -556,7 +596,7 @@ async function determineWinningColor() {
   return winningNumber;
 }
 
-async function processWinnings(winningNumber) {
+async function processWinnings(winningNumber, roundId) {
   const settings = await getMultipliers();
   const numMult = settings.number;
   const colMult = settings.color;
@@ -570,6 +610,16 @@ async function processWinnings(winningNumber) {
   };
 
   const winningColor = numberToColor[winningNumber];
+   const connection = await con.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // STEP 1: Mark ALL bets for this round as 'loss' by default
+    // This is faster than iterating through every loser
+    await connection.query(
+      "UPDATE color_bets SET status = 'loss', winnings = 0 WHERE round_id = ?",
+      [roundId]
+    );
 
   // 1. Process Number Wins
   // Safety check: ensure the map exists before iterating
@@ -578,6 +628,10 @@ async function processWinnings(winningNumber) {
     for (const [userId, betAmount] of numberBets) {
       const winnings = betAmount * numMult;
       await updateUserWallet(userId, winnings);
+      await connection.query(
+          "UPDATE color_bets SET status = 'win', winnings = ? WHERE round_id = ? AND user_id = ? AND bet_on = ?",
+          [winnings, roundId, userId, winningNumber.toString()]
+        );
       emitWin(userId, { number: winningNumber, betAmount, winnings });
     }
   }
@@ -598,14 +652,38 @@ async function processWinnings(winningNumber) {
       for (const [userId, betAmount] of colorBets) {
         const winnings = betAmount * multiplier;
         await updateUserWallet(userId, winnings);
+         await connection.query(
+            "UPDATE color_bets SET status = 'win', winnings = ? WHERE round_id = ? AND user_id = ? AND bet_on = ?",
+            [winnings, roundId, userId, colorName]
+          );
         emitWin(userId, { color: colorName, betAmount, winnings });
       }
     }
   }
+  await connection.query(
+      "UPDATE color_rounds SET status = 'finished', winning_number = ?, winning_color = ?, betting_close_at = NOW() WHERE id = ?",
+      [winningNumber, winningColor, roundId]
+    );
+        await connection.query(
+      `INSERT INTO color_results_history (round_id, winning_color, winning_number, declared_at) 
+       VALUES (?, ?, ?, NOW())`,
+      [roundId, winningColor, winningNumber]
+    );
+
+    await connection.commit();
+    console.log(`✅ Round ${roundId} results saved to database.`);
+
+}
+catch (error) {
+    await connection.rollback();
+    console.error("❌ SQL Error in processWinnings:", error);
+  } finally {
+    connection.release();
+  }
 }
 
 // Helper to keep code clean
-function emitWin(userId, data) {
+ function emitWin(userId, data) {
   const userSocket = Array.from(colorNamespace.sockets.values()).find(s => s.userId === userId);
   if (userSocket) {
     userSocket.emit('winResult', data);

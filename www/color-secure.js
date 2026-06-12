@@ -466,10 +466,10 @@ tbody.innerHTML = html;
   });
 
   // ✅ Listen for Bet Placed Confirmation
-  socket.on('betPlaced', function(data) {
-    console.log(`🎯 Bet Placed On: ${data.color} | Amount: ₹${data.amount}`);
-    showNotification(`🎯 Bet placed on ${data.color} for ₹${data.amount}!`, 'success');
-  });
+  // socket.on('betPlaced', function(data) {
+  //   console.log(`🎯 Bet Placed On: ${data.color} | Amount: ₹${data.amount}`);
+  //   showNotification(`🎯 Bet placed on ${data.color} for ₹${data.amount}!`, 'success');
+  // });
 
   // ✅ Listen for Room Stats (Active Players)
   socket.on('roomStats', function(stats) {
