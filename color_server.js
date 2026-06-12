@@ -487,6 +487,7 @@ async function getMultipliers() {
       "SELECT setting_key, setting_value FROM site_settings WHERE setting_key IN ('colors_multiplier', 'number_multiplier')"
     );
     connection.release();
+    console.log("✅ Fetched multipliers from DB:", rows);
 
     // Default values
     let multipliers = { color: 2, number: 9 };
