@@ -504,8 +504,8 @@ export function initColorGame(io, con) {
 
 
 
-    // const result = await determineWinningColor();
-    // colorGameState.currentColor = result;
+    const result = winningNumber;
+    colorGameState.currentColor = winningNumber;
     
     // await processWinnings(result);
     
