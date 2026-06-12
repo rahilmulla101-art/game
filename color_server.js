@@ -663,7 +663,7 @@ async function processWinnings(winningNumber, roundId) {
     }
   }
   await connection.query(
-      "UPDATE color_rounds SET status = 'finished', winning_number = ?, winning_color = ?, betting_close_at = NOW() WHERE id = ?",
+      "UPDATE color_rounds SET status = 'result_declared', winning_number = ?, winning_color = ?, betting_close_at = NOW() WHERE id = ?",
       [winningNumber, winningColor, roundId]
     );
         await connection.query(
