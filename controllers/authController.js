@@ -74,7 +74,7 @@ export const sendOtp = async (req, res) => {
 
 
       var data = qs.stringify({
-          "token": "t8ux76qys3z07rho",
+          "token": "d10qpsqqnm2lplpv",
           "to": `+91${mobile}`,
           "body": `Dragon vs Tiger
 
@@ -87,7 +87,7 @@ Do not share this OTP.`
       
       var config = {
         method: 'post',
-        url: 'https://api.ultramsg.com/instance179807/messages/chat',
+        url: 'https://api.ultramsg.com/instance180512/messages/chat',
         headers: {  
           'Content-Type': 'application/x-www-form-urlencoded'
         },
@@ -468,14 +468,14 @@ export const forgotSendOtp = async (req, res) => {
 
     // Send through UltraMsg Instance
     var data = qs.stringify({
-      "token": "t8ux76qys3z07rho",
+      "token": "d10qpsqqnm2lplpv",
       "to": `+91${mobile}`,
       "body": `Dragon vs Tiger Arena \n\nRESET CODE: ${otp}\n\nYour OTP to reset your password is valid for 3 minutes. Do not share this pin.`
     });
     
     var config = {
       method: 'post',
-      url: 'https://api.ultramsg.com/instance179807/messages/chat',
+      url: 'https://api.ultramsg.com/instance180512/messages/chat',
       headers: {  
         'Content-Type': 'application/x-www-form-urlencoded'
       },
@@ -659,14 +659,14 @@ export const changePasswordSendOtp = async (req, res) => {
 
     // Dispatch via UltraMsg
     var data = qs.stringify({
-      "token": "t8ux76qys3z07rho",
+      "token": "d10qpsqqnm2lplpv",
       "to": `+91${mobile}`,
       "body": `Dragon vs Tiger Arena \n\nCHANGE PASSWORD CODE: ${otp}\n\nYour security confirmation OTP code is valid for 3 minutes. Do not share this pin.`
     });
     
     var config = {
       method: 'post',
-      url: 'https://api.ultramsg.com/instance179807/messages/chat',
+      url: 'https://api.ultramsg.com/instance180512/messages/chat',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       data: data
     };
@@ -987,7 +987,7 @@ export const adminSendOtp = async (
     // Use your existing UltraMsg code here
 
 var data = qs.stringify({
-    "token": "t8ux76qys3z07rho",
+    "token": "d10qpsqqnm2lplpv",
     "to": `91${admin.mobile}`,
     "body": `Dragon vs Tiger Admin Login
 
@@ -1000,7 +1000,7 @@ Do not share this OTP.`
 
 var config = {
     method: 'post',
-    url: 'https://api.ultramsg.com/instance179807/messages/chat',
+    url: 'https://api.ultramsg.com/instance180512/messages/chat',
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
     },
