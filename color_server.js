@@ -510,8 +510,8 @@ export function initColorGame(io, con) {
     // await processWinnings(result);
     
     setTimeout(() => {
-      colorNamespace.emit('gameResult', result);
-      console.log(`✅ Game result: ${result}`);
+      colorNamespace.emit('gameResult', winningNumber);
+      console.log(`✅ Game result: ${winningNumber}`);
       
       setTimeout(() => {
         resetGameState();
