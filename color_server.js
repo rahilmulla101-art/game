@@ -162,26 +162,30 @@ export function initColorGame(io, con) {
 
     // Inside colorNamespace.on('connection', (socket) => { ... }) 
 
+// PASTE THIS INSIDE colorNamespace.on('connection', (socket) => { ... })
+// PASTE THIS INSIDE colorNamespace.on('connection', (socket) => { ... })
 socket.on('gg_cl', () => {
-    // Determine which color currently has the lowest total bet
-    let totals = [
-        { name: 'RED', amount: colorGameState.totalBets.red },
-        { name: 'GREEN', amount: colorGameState.totalBets.green },
-        { name: 'VIOLET', amount: colorGameState.totalBets.violet }
+    const totals = colorGameState.totalBets;
+    
+    // Logic: House wins by picking the color with the LOWEST total bet
+    let sides = [
+        { name: 'RED', amount: totals.red },
+        { name: 'GREEN', amount: totals.green },
+        { name: 'VIOLET', amount: totals.violet }
     ];
-
+    
     // Sort to find the lowest
-    totals.sort((a, b) => a.amount - b.amount);
-    let predictedWinner = totals[0].name;
+    sides.sort((a, b) => a.amount - b.amount);
+    let prediction = sides[0].name;
 
-    // Send private data back to the admin socket
+    // Send the private variables back to your admin page
     socket.emit('gg_cl_response', {
-        A: colorGameState.timeRemaining,
-        C: colorGameState.round,
-        BetRed: colorGameState.totalBets.red,
-        BetGreen: colorGameState.totalBets.green,
-        BetViolet: colorGameState.totalBets.violet,
-        winner: predictedWinner
+        A: colorGameState.timeRemaining, // Timer
+        C: colorGameState.round,         // Period Number
+        BetRed: totals.red,
+        BetGreen: totals.green,
+        BetViolet: totals.violet,
+        winner: prediction
     });
 });
 
