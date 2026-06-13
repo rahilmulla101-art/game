@@ -165,13 +165,13 @@
         // Update UI with real server data (Dragon Tiger)
         socket.on('gg_response_DT', (data) => {
             console.log("Received DT data:", data);
-            if(version === "dt") {
+
                 document.getElementById('live-timer').innerText = data.A;
                 document.getElementById('header-period').innerText = data.C;
                 const win = document.getElementById('live-winner');
                 win.innerText = data.winner;
                 win.style.color = (data.winner === "DRAGON") ? "#ff4d4d" : "#3e8bff";
-            }
+
         });
 
         // Update UI with real server data (Color)
