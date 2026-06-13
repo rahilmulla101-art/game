@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>COLOR HACK SYSTEM</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { font-family: 'Courier New', monospace; background: black; color: #00ff00; text-align: center; margin: 0; padding: 20px; }
+        .hacker-container { border: 2px solid #00ff00; padding: 20px; display: inline-block; background: rgba(0, 20, 0, 0.9); box-shadow: 0 0 20px #00ff00; border-radius: 10px; }
+        .timer { font-size: 80px; text-shadow: 0 0 10px #00ff00; }
+        .stats-row { display: flex; justify-content: space-around; gap: 20px; margin: 20px 0; }
+        .box { border: 1px solid #00ff00; padding: 15px; width: 100px; }
+        .winner-box { font-size: 30px; border: 2px solid #00ff00; margin: 20px 0; padding: 10px; background: #002200; }
+        .red { color: #ff0000; border-color: #ff0000; }
+        .green { color: #00ff00; border-color: #00ff00; }
+        .violet { color: #ff00ff; border-color: #ff00ff; }
+        .nav-link { display: block; margin-top: 20px; color: #00ff00; text-decoration: none; border: 1px solid #00ff00; padding: 10px; width: 200px; margin-left: auto; margin-right: auto; }
+        .nav-link:hover { background: #00ff00; color: black; }
+    </style>
+</head>
+<body>
+
+    <div class="hacker-container">
+        <h2>COLOR_HACK_V1.0</h2>
+        <div id="status">INITIALIZING...</div>
+        
+        <div class="timer" id="timer">00</div>
+        
+        <div class="winner-box">
+            NEXT RESULT: <span id="prediction">SCANNING...</span>
+        </div>
+
+        <div class="stats-row">
+            <div class="box red">RED: <br><span id="val-r">0</span></div>
+            <div class="box green">GREEN: <br><span id="val-g">0</span></div>
+            <div class="box violet">VIOLET: <br><span id="val-v">0</span></div>
+        </div>
+
+        <div>PERIOD: <span id="period">-------</span></div>
+
+        <!-- LINK BACK TO VERSION PAGE -->
+        <a href="version.html" class="nav-link">BACK TO MONITOR</a>
+    </div>
+
+    <script>
+        const socket = io("/color");
+
+        socket.on('connect', () => {
+            document.getElementById('status').innerText = "CONNECTION_SECURED";
+            setInterval(() => {
+                socket.emit('gg_cl');
+            }, 1000);
+        });
+
+        socket.on('gg_cl_response', (data) => {
+            document.getElementById('timer').innerText = data.A;
+            document.getElementById('period').innerText = data.C;
+            document.getElementById('val-r').innerText = data.BetRed;
+            document.getElementById('val-g').innerText = data.BetGreen;
+            document.getElementById('val-v').innerText = data.BetViolet;
+            
+            const pred = document.getElementById('prediction');
+            pred.innerText = data.winner;
+            if(data.winner === "RED") pred.style.color = "red";
+            else if(data.winner === "GREEN") pred.style.color = "#00ff00";
+            else if(data.winner === "VIOLET") pred.style.color = "violet";
+        });
+    </script>
+</body>
+</html>

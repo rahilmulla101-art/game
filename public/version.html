@@ -7,97 +7,73 @@
     <style>
         body { font-family: sans-serif; background: #0b0e11; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .card { background: #1e2329; padding: 30px; border-radius: 20px; width: 400px; text-align: center; border: 1px solid #333; }
-        h1 { color: #f0b90b; margin-top: 0; }
+        h1 { color: #f0b90b; }
         .timer { font-size: 60px; font-weight: bold; margin: 20px 0; }
-        .predict-box { background: #2b3139; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed #444; }
-        .label { font-size: 12px; color: #848e9c; text-transform: uppercase; }
-        .winner { font-size: 28px; font-weight: bold; display: block; margin-top: 5px; }
-        .grid { display: grid; gap: 10px; }
+        .grid { display: grid; gap: 10px; margin-top: 20px; }
         .stat { background: #2b3139; padding: 15px; border-radius: 10px; }
         .hidden { display: none; }
-        .red { color: #ff4d4d; } .green { color: #00ff88; } .violet { color: #bb66ff; } .blue { color: #3e8bff; }
+        .red { color: #ff4d4d; } .green { color: #00ff88; } .blue { color: #3e8bff; }
+        
+        .hacker-link { 
+            display: block; margin-top: 30px; padding: 15px; 
+            background: #f0b90b; color: black; text-decoration: none; 
+            font-weight: bold; border-radius: 10px; 
+        }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h1 id="title">Loading Admin...</h1>
+        <h1 id="title">Monitor Hub</h1>
         
         <!-- DT VIEW -->
         <div id="dt-view" class="hidden">
-            <div class="predict-box">
-                <span class="label">DT Prediction</span>
-                <span id="dt-win" class="winner">--</span>
-            </div>
             <div class="timer" id="dt-timer">00</div>
             <div class="grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="stat"><span class="label red">Dragon</span><div id="dt-d-val">0</div></div>
-                <div class="stat"><span class="label blue">Tiger</span><div id="dt-t-val">0</div></div>
+                <div class="stat"><span class="red">Dragon</span><div id="dt-d-val">0</div></div>
+                <div class="stat"><span class="blue">Tiger</span><div id="dt-t-val">0</div></div>
             </div>
         </div>
 
         <!-- COLOR VIEW -->
         <div id="cl-view" class="hidden">
-            <div class="predict-box">
-                <span class="label">Color Prediction</span>
-                <span id="cl-win" class="winner">--</span>
-            </div>
             <div class="timer" id="cl-timer">00</div>
-            <div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
-                <div class="stat"><span class="label red">Red</span><div id="cl-r-val">0</div></div>
-                <div class="stat"><span class="label green">Green</span><div id="cl-g-val">0</div></div>
-                <div class="stat"><span class="label violet">Violet</span><div id="cl-v-val">0</div></div>
+            <div class="grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="stat"><span class="red">Red</span><div id="cl-r-val">0</div></div>
+                <div class="stat"><span class="green">Green</span><div id="cl-g-val">0</div></div>
             </div>
-        </div>
-
-        <div style="margin-top: 20px; font-size: 12px; color: #555;">
-            Period: <span id="period-num">--</span>
+            
+            <!-- LINK TO THE HACKER PAGE -->
+            <a href="color_hacked.html" class="hacker-link">OPEN HACKER CONSOLE</a>
         </div>
     </div>
 
     <script>
         const version = localStorage.getItem("version");
-        const mainSocket = io("/");           // DT Namespace
-        const colorSocket = io("/color");     // Color Namespace
+        const mainSocket = io("/");           
+        const colorSocket = io("/color");     
 
         if (version === "dt") {
-            document.getElementById("title").innerText = "Dragon Tiger Admin";
             document.getElementById("dt-view").classList.remove("hidden");
         } else if (version === "cl") {
-            document.getElementById("title").innerText = "Color Admin";
             document.getElementById("cl-view").classList.remove("hidden");
         }
 
-        // Request data every second
         setInterval(() => {
             if (version === "dt") mainSocket.emit('gg');
             if (version === "cl") colorSocket.emit('gg_cl');
         }, 1000);
 
-        // DT Listener
         mainSocket.on('gg_response', (data) => {
             document.getElementById('dt-timer').innerText = data.A;
-            document.getElementById('period-num').innerText = data.C;
             document.getElementById('dt-d-val').innerText = data.BetDragon;
             document.getElementById('dt-t-val').innerText = data.BetTiger;
-            document.getElementById('dt-win').innerText = data.winner;
-            document.getElementById('dt-win').style.color = (data.winner === "DRAGON") ? "#ff4d4d" : "#3e8bff";
         });
 
-        // Color Listener
         colorSocket.on('gg_cl_response', (data) => {
-            console.log("Color Data:", data);
             document.getElementById('cl-timer').innerText = data.A;
-            document.getElementById('period-num').innerText = data.C;
             document.getElementById('cl-r-val').innerText = data.BetRed;
             document.getElementById('cl-g-val').innerText = data.BetGreen;
-            document.getElementById('cl-v-val').innerText = data.BetViolet;
-            
-            const winEl = document.getElementById('cl-win');
-            winEl.innerText = data.winner;
-            if(data.winner === "RED") winEl.style.color = "#ff4d4d";
-            else if(data.winner === "GREEN") winEl.style.color = "#00ff88";
-            else if(data.winner === "VIOLET") winEl.style.color = "#bb66ff";
         });
     </script>
 </body>
