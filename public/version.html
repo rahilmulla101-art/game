@@ -124,7 +124,7 @@
     </div>
 
     <script>
-        const version = localStorage.getItem("version");
+
         const socket = io("/"); 
         
 
@@ -158,10 +158,9 @@
    
 
         // Polling loop for current version
-        setInterval(() => {
-            if (version === "dt") socket.emit('gg');
 
-        }, 1000);
+
+         socket.emit('gg');
 
         // Update UI with real server data (Dragon Tiger)
         socket.on('gg_response_DT', (data) => {
