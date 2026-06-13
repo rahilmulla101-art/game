@@ -86,6 +86,7 @@
 
         // Color Listener
         colorSocket.on('gg_cl_response', (data) => {
+            console.log("Color Data:", data);
             document.getElementById('cl-timer').innerText = data.A;
             document.getElementById('period-num').innerText = data.C;
             document.getElementById('cl-r-val').innerText = data.BetRed;
