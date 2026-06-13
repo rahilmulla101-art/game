@@ -61,16 +61,12 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(
-    '/api',
-    sessionRoutes
-);
-
-
+// Body Parsers (MUST come before routes)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Mounted API Routes
+app.use('/api', sessionRoutes); // Moved here so req.body works
 app.use('/api/auth', authRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api', gameRoutes);
