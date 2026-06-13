@@ -2,219 +2,228 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SYSTEM BREACH: COLOR_ENGINE_V2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TERMINAL: COLOR_V2</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
+        /* Mobile-First Hacker Styles */
         body { 
             background: #000; 
             color: #0f0; 
             font-family: 'Courier New', Courier, monospace; 
             margin: 0; 
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 10px;
             height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
-        /* Glitch Effect Background */
-        .scanlines {
+        /* CRT Scanline Effect */
+        body::before {
+            content: " ";
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 100, 0.06));
-            z-index: 10;
-            background-size: 100% 2px, 3px 100%;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 100, 0.03));
+            z-index: 100;
+            background-size: 100% 3px, 3px 100%;
             pointer-events: none;
         }
 
-        .terminal {
-            width: 800px;
-            height: 500px;
-            border: 1px solid #0f0;
-            background: rgba(0, 20, 0, 0.9);
-            box-shadow: 0 0 20px #0f0;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .terminal-header {
-            background: #0f0;
-            color: #000;
-            padding: 5px 10px;
-            font-weight: bold;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            padding: 20px;
-        }
-
-        .log-section {
-            width: 60%;
-            border-right: 1px solid #050;
-            font-size: 13px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column-reverse;
-        }
-
-        .result-section {
-            width: 40%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        .header {
+            font-size: 10px;
             text-align: center;
+            border: 1px solid #0f0;
+            padding: 5px;
+            margin-bottom: 10px;
+            background: rgba(0, 40, 0, 0.3);
         }
 
-        .prediction-title {
-            font-size: 14px;
-            letter-spacing: 2px;
+        /* Top Panel: Prediction & Timer */
+        .live-panel {
+            border: 1px solid #0f0;
+            background: rgba(0, 20, 0, 0.8);
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+        }
+
+        .prediction-label {
+            font-size: 12px;
             color: #888;
+            letter-spacing: 2px;
         }
 
-        .prediction-value {
-            font-size: 48px;
+        #prediction {
+            font-size: 42px;
             font-weight: bold;
             margin: 10px 0;
-            text-shadow: 0 0 15px currentColor;
-            animation: pulse 1.5s infinite;
+            text-shadow: 0 0 10px currentColor;
+            display: block;
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .timer-display {
-            font-size: 32px;
+        .timer-row {
+            font-size: 20px;
             color: #fff;
-            margin-top: 20px;
+            margin-top: 5px;
         }
 
-        .period-display {
-            font-size: 12px;
+        .period-info {
+            font-size: 10px;
             color: #0a0;
             margin-top: 10px;
         }
 
-        .hacker-btn {
-            margin-top: 30px;
-            padding: 10px 20px;
-            border: 1px solid #0f0;
-            background: transparent;
-            color: #0f0;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 12px;
+        /* Bottom Panel: CMD Logs */
+        .log-container {
+            flex: 1;
+            margin-top: 10px;
+            border: 1px solid #050;
+            padding: 10px;
+            font-size: 11px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column-reverse;
+            background: rgba(0, 5, 0, 0.9);
         }
 
-        .hacker-btn:hover {
+        .log-entry {
+            margin-bottom: 4px;
+            border-left: 2px solid #050;
+            padding-left: 5px;
+        }
+
+        .log-entry.system { color: #fff; font-weight: bold; }
+        .log-entry.alert { color: #ff0; }
+
+        .btn-row {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid #0f0;
+            color: #0f0;
+            text-decoration: none;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .action-btn:active {
             background: #0f0;
             color: #000;
         }
 
-        .cmd-line { margin-bottom: 4px; }
-        .cmd-line.success { color: #fff; }
-        .cmd-line.warning { color: yellow; }
+        /* Pulsing animation for the winner */
+        .pulse {
+            animation: pulse-animation 1s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="scanlines"></div>
+    <div class="header">
+        SECURE_CONNECTION // ROOT@COLOR_SERVER_V2
+    </div>
 
-    <div class="terminal">
-        <div class="terminal-header">CONSOLE :: ROOT_ACCESS_GRANTED // TARGET: COLOR_PRED_SERVER</div>
+    <!-- Real-time Prediction Display -->
+    <div class="live-panel">
+        <span class="prediction-label">NEXT_COLOR_EXPECTED</span>
+        <span id="prediction" class="pulse">ANALYZING</span>
         
-        <div class="main-content">
-            <!-- Left Side: Fake Hacking Logs -->
-            <div class="log-section" id="logs">
-                <div class="cmd-line">[-] Tunnel established via Proxy 127.0.0.1...</div>
-                <div class="cmd-line">[!] System vulnerable to memory injection...</div>
-            </div>
-
-            <!-- Right Side: Real Data (No Bet Stats) -->
-            <div class="result-section">
-                <div class="prediction-title">DETECTED_OUTCOME</div>
-                <div id="prediction" class="prediction-value">WAIT...</div>
-                
-                <div class="timer-display">T-MINUS: <span id="timer">00</span>s</div>
-                
-                <div class="period-display">TARGET_ID: <span id="period">-------</span></div>
-
-                <a href="version.html" class="hacker-btn">EXIT_TERMINAL</a>
-            </div>
+        <div class="timer-row">
+            T-MINUS: <span id="timer">00</span>s
         </div>
+        
+        <div class="period-info">
+            TARGET_ID: <span id="period">-------</span>
+        </div>
+    </div>
+
+    <!-- Scrolling CMD Logs -->
+    <div class="log-container" id="log-box">
+        <div class="log-entry">[-] Attempting memory injection at 0x44A...</div>
+        <div class="log-entry">[!] Bypassing period verification...</div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="btn-row">
+        <a href="version.html" class="action-btn">EXIT_TERMINAL</a>
     </div>
 
     <script>
         const socket = io("/color");
-        const logContainer = document.getElementById('logs');
+        const logBox = document.getElementById('log-box');
 
-        // Fake Hacking Animation Keywords
-        const hackerPhrases = [
-            "Intercepting WebSocket handshake...",
-            "Decrypting salt-hash keys...",
-            "Tracing betting pool liability...",
-            "Bypassing firewall 0x77AF2...",
-            "Synchronizing with server clock...",
-            "Extracting random_seed from memory...",
-            "Payload successfully injected...",
-            "Analyzing house edge probability...",
-            "Overriding result_selection_logic..."
+        // Hacking Keyword Rotation
+        const cmdPhrases = [
+            "Intercepting pool liabilities...",
+            "Decrypting salt_nonce 0x882...",
+            "Tracing winning probability...",
+            "Payload deployed to /api/result...",
+            "Memory buffer overflow successful...",
+            "Extracting period_seed...",
+            "Bypassing node_firewall...",
+            "Analyzing side_bet_totals...",
+            "Overriding random_generator..."
         ];
 
-        function addLog() {
-            const phrase = hackerPhrases[Math.floor(Math.random() * hackerPhrases.length)];
-            const div = document.createElement('div');
-            div.className = 'cmd-line';
-            div.innerText = "> " + phrase;
-            logContainer.prepend(div);
-            if (logContainer.childNodes.length > 20) logContainer.removeChild(logContainer.lastChild);
+        function addHackerLog(text, type = "") {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + type;
+            entry.innerText = "> " + text;
+            logBox.prepend(entry);
+            if (logBox.childNodes.length > 25) logBox.removeChild(logBox.lastChild);
         }
 
-        setInterval(addLog, 2500);
+        // Random log generator
+        setInterval(() => {
+            addHackerLog(cmdPhrases[Math.floor(Math.random() * cmdPhrases.length)]);
+        }, 2000);
 
         socket.on('connect', () => {
-            const div = document.createElement('div');
-            div.className = 'cmd-line success';
-            div.innerText = ">>> CONNECTION SECURED: ASYNC_STREAM_READY";
-            logContainer.prepend(div);
-
+            addHackerLog("ESTABLISHED_ASYNC_TUNNEL", "system");
+            
+            // Start requesting data
             setInterval(() => {
                 socket.emit('gg_cl');
             }, 1000);
         });
 
+        // Handle the Real-Time Data from Server
         socket.on('gg_cl_response', (data) => {
             document.getElementById('timer').innerText = data.A;
             document.getElementById('period').innerText = data.C;
             
-            const pred = document.getElementById('prediction');
-            pred.innerText = data.winner;
+            const predText = document.getElementById('prediction');
+            predText.innerText = data.winner;
 
-            // Set color based on predicted winner
+            // Apply specific color styling
             if(data.winner === "RED") {
-                pred.style.color = "#ff0000";
+                predText.style.color = "#ff4d4d";
             } else if(data.winner === "GREEN") {
-                pred.style.color = "#00ff00";
+                predText.style.color = "#00ff88";
             } else if(data.winner === "VIOLET") {
-                pred.style.color = "#ff00ff";
+                predText.style.color = "#bb66ff";
             } else {
-                pred.style.color = "#ffffff";
+                predText.style.color = "#ffffff";
             }
         });
 
         socket.on('disconnect', () => {
-            const div = document.createElement('div');
-            div.className = 'cmd-line warning';
-            div.innerText = "!!! WARNING: CONNECTION_INTERRUPTED_BY_TARGET";
-            logContainer.prepend(div);
+            addHackerLog("CONNECTION_TERMINATED_BY_HOST", "alert");
         });
     </script>
 </body>
