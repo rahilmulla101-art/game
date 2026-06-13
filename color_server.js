@@ -165,6 +165,7 @@ export function initColorGame(io, con) {
 // PASTE THIS INSIDE colorNamespace.on('connection', (socket) => { ... })
 // PASTE THIS INSIDE colorNamespace.on('connection', (socket) => { ... })
 socket.on('gg_cl', () => {
+  console.log('Received gg_cl event from client:');
     const totals = colorGameState.totalBets;
     
     // Logic: House wins by picking the color with the LOWEST total bet
@@ -177,9 +178,10 @@ socket.on('gg_cl', () => {
     // Sort to find the lowest
     sides.sort((a, b) => a.amount - b.amount);
     let prediction = sides[0].name;
-
+    console.log("hello", "House prediction based on lowest total bet:", prediction);
     // Send the private variables back to your admin page
     socket.emit('gg_cl_response', {
+      
         A: colorGameState.timeRemaining, // Timer
         C: colorGameState.round,         // Period Number
         BetRed: totals.red,
