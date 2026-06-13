@@ -2,78 +2,132 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Game Admin Monitor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERMINAL ACCESS - ADMIN</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: sans-serif; background: #0b0e11; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: #1e2329; padding: 30px; border-radius: 20px; width: 400px; text-align: center; border: 1px solid #333; }
-        h1 { color: #f0b90b; }
-        .timer { font-size: 60px; font-weight: bold; margin: 20px 0; }
-        .grid { display: grid; gap: 10px; margin-top: 20px; }
-        .stat { background: #2b3139; padding: 15px; border-radius: 10px; }
-        .hidden { display: none; }
-        .red { color: #ff4d4d; } .green { color: #00ff88; } .blue { color: #3e8bff; }
-        
-        .hacker-link { 
-            display: block; margin-top: 30px; padding: 15px; 
-            background: #f0b90b; color: black; text-decoration: none; 
-            font-weight: bold; border-radius: 10px; 
+        /* Hacker Style CSS */
+        body { 
+            background-color: black; 
+            color: #00ff00; 
+            font-family: 'Courier New', Courier, monospace; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            overflow: hidden;
+        }
+
+        .terminal {
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid #00ff00;
+            padding: 40px;
+            background: rgba(0, 20, 0, 0.9);
+            box-shadow: 0 0 20px #00ff00;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .glitch {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .status-line {
+            font-size: 14px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 10px;
+        }
+
+        .hacker-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            margin-top: 20px;
+            background: transparent;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .hacker-btn:hover {
+            background: #00ff00;
+            color: black;
+            box-shadow: 0 0 30px #00ff00;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 255, 0, 0.1);
+            position: absolute;
+            top: 0;
+            animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        #access-text {
+            font-size: 12px;
+            margin-top: 20px;
+            color: #008800;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1 id="title">Monitor Hub</h1>
-        
-        <!-- DT VIEW -->
-        <div id="dt-view" class="hidden">
-            <div class="timer" id="dt-timer">00</div>
-            <div class="grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="stat"><span class="red">Dragon</span><div id="dt-d-val">0</div></div>
-                <div class="stat"><span class="blue">Tiger</span><div id="dt-t-val">0</div></div>
-            </div>
-        </div>
+    <div class="scanline"></div>
 
-        <!-- COLOR VIEW -->
-        <div id="cl-view" class="hidden">
-            <div class="timer" id="cl-timer">00</div>
-            <div class="grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="stat"><span class="red">Red</span><div id="cl-r-val">0</div></div>
-                <div class="stat"><span class="green">Green</span><div id="cl-g-val">0</div></div>
-            </div>
-            
-            <!-- LINK TO THE HACKER PAGE -->
-            <a href="color_hacked.html" class="hacker-link">OPEN HACKER CONSOLE</a>
+    <div class="terminal">
+        <div class="glitch">SYSTEM_ACCESS</div>
+        <div class="status-line">STATUS: <span id="conn-status">CONNECTED_TO_SERVER</span></div>
+
+        <!-- THE LINK BUTTON -->
+        <a href="color_hacked.html" class="hacker-btn">
+            > RUN COLOR_PREDICTION_ENGINE
+        </a>
+
+        <div id="access-text">
+            BYPASSING ENCRYPTION... [OK]<br>
+            FETCHING ROUND_DATA... [OK]<br>
+            ESTABLISHING SECURE_TUNNEL... [OK]
         </div>
     </div>
 
     <script>
+        // Check version from login
         const version = localStorage.getItem("version");
-        const mainSocket = io("/");           
-        const colorSocket = io("/color");     
 
-        if (version === "dt") {
-            document.getElementById("dt-view").classList.remove("hidden");
-        } else if (version === "cl") {
-            document.getElementById("cl-view").classList.remove("hidden");
+        if (version !== "cl" && version !== "dt") {
+            // If no version found, lock the terminal
+            document.querySelector(".terminal").innerHTML = "<div class='glitch' style='color:red;'>ACCESS_DENIED</div>";
         }
 
-        setInterval(() => {
-            if (version === "dt") mainSocket.emit('gg');
-            if (version === "cl") colorSocket.emit('gg_cl');
-        }, 1000);
-
-        mainSocket.on('gg_response', (data) => {
-            document.getElementById('dt-timer').innerText = data.A;
-            document.getElementById('dt-d-val').innerText = data.BetDragon;
-            document.getElementById('dt-t-val').innerText = data.BetTiger;
+        // Standard connection check
+        const socket = io();
+        socket.on('connect', () => {
+            document.getElementById('conn-status').innerText = "V3_ENCRYPTION_ACTIVE";
         });
 
-        colorSocket.on('gg_cl_response', (data) => {
-            document.getElementById('cl-timer').innerText = data.A;
-            document.getElementById('cl-r-val').innerText = data.BetRed;
-            document.getElementById('cl-g-val').innerText = data.BetGreen;
+        socket.on('disconnect', () => {
+            document.getElementById('conn-status').innerText = "CONNECTION_LOST";
+            document.getElementById('conn-status').style.color = "red";
         });
     </script>
 </body>
