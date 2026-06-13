@@ -43,6 +43,18 @@ export function initDragonTiger(io, con) {
       console.log('Received message from client:', data);
     });
 
+    // Inside io.on('connection', (socket) => { ... }) in dragonvstiger.js
+
+    socket.on('gg', () => {
+        // We only reply to THIS specific socket (socket.emit, not io.emit)
+        socket.emit('gg_response', {
+            A: A,          // The timer variable from your server
+            C: C,          // The round ID variable from your server
+            BetTiger: BetTiger,   // Total Tiger betting
+            BetDragon: BetDragon  // Total Dragon betting
+        });
+    });
+
     socket.on("setUserId", async (token) => {
       console.log("Received setUserId event");
 
