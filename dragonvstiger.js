@@ -57,7 +57,7 @@ socket.on('gg', () => {
         predictedWinner = "TIGER";
     }
 
-    socket.emit('gg_response', {
+    socket.emit('gg_response_DT', {
         A: A,
         C: C,
         BetTiger: BetTiger,
