@@ -108,7 +108,10 @@ async(req,res)=>{
 try{
 const token = req.body?.token;
 const uuid = req.body?.uuid;
-
+    console.log("METHOD:", req.method);
+    console.log("HEADERS:", req.headers);
+    console.log("BODY:", req.body);
+    
 if (!token || !uuid) {
     return res.json({
         success: false,
