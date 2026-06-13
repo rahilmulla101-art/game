@@ -1,41 +1,119 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Version</title>
+    <!-- Include Socket.io Client -->
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; }
+        .game-container { margin-top: 50px; padding: 20px; border: 2px solid #444; border-radius: 10px; inline-block; }
+        .timer { font-size: 2rem; color: #ffcc00; }
+        .controls { margin-top: 20px; }
+        button { padding: 10px 20px; cursor: pointer; font-weight: bold; }
+        .hidden { display: none; }
+        #status { color: #00ff00; font-size: 0.8rem; }
+    </style>
+</head>
 <body>
 
-<h1 id="title">
-Loading...
-</h1>
+    <h1 id="title">Loading Game...</h1>
+    <p id="status">Connecting to server...</p>
 
-<script>
+    <!-- Dragon Tiger UI -->
+    <div id="dt-ui" class="game-container hidden">
+        <h2>Dragon vs Tiger</h2>
+        <div class="timer" id="dt-timer">00</div>
+        <div class="controls">
+            <button onclick="sendBet('dragon')">Bet Dragon</button>
+            <button onclick="sendBet('tiger')">Bet Tiger</button>
+            <button onclick="sendBet('tie')">Bet Tie</button>
+        </div>
+        <div id="dt-result">Waiting for round...</div>
+    </div>
 
-const version =
-localStorage.getItem(
-    "version"
-);
+    <!-- Color Prediction UI -->
+    <div id="cl-ui" class="game-container hidden">
+        <h2>Color Prediction</h2>
+        <div class="timer" id="cl-timer">00</div>
+        <div class="controls">
+            <button style="background:red; color:white;" onclick="sendBet('red')">Red</button>
+            <button style="background:green; color:white;" onclick="sendBet('green')">Green</button>
+            <button style="background:violet; color:white;" onclick="sendBet('violet')">Violet</button>
+        </div>
+        <div id="cl-result">Waiting for round...</div>
+    </div>
 
-if(version==="dt"){
+    <script>
+        // 1. Initialize Socket
+        const socket = io();
+        const version = localStorage.getItem("version");
+        const token = localStorage.getItem("auth_token"); // Ensure you stored this during login
 
-    document
-    .getElementById(
-        "title"
-    )
-    .innerHTML =
-    "Dragon Tiger Version";
+        socket.on('connect', () => {
+            document.getElementById('status').innerText = "Connected to Game Server";
+            
+            // Join specific room or notify server which game we are in
+            socket.emit('join-game', { version, token });
+        });
 
-}
+        // 2. UI Setup based on version
+        if (version === "dt") {
+            document.getElementById("title").innerHTML = "Dragon Tiger";
+            document.getElementById("dt-ui").classList.remove("hidden");
+            
+            // Listen for Dragon Tiger Events (Matching your dragonvstiger.js)
+            socket.on('dt-timer', (data) => {
+                document.getElementById('dt-timer').innerText = data.timeLeft;
+            });
 
-if(version==="cl"){
+            socket.on('dt-result', (data) => {
+                document.getElementById('dt-result').innerText = "Winner: " + data.winner;
+            });
 
-    document
-    .getElementById(
-        "title"
-    )
-    .innerHTML =
-    "Color Prediction Version";
+        } else if (version === "cl") {
+            document.getElementById("title").innerHTML = "Color Prediction";
+            document.getElementById("cl-ui").classList.remove("hidden");
 
-}
+            // Listen for Color Game Events (Matching your color_server.js)
+            socket.on('cl-timer', (data) => {
+                document.getElementById('cl-timer').innerText = data.timeLeft;
+            });
 
-</script>
+            socket.on('cl-result', (data) => {
+                document.getElementById('cl-result').innerText = "Result: " + data.color;
+            });
 
+        } else {
+            alert("No version assigned. Redirecting to login.");
+            window.location.href = "login.html";
+        }
+
+        // 3. Function to send data (Bets) to server
+        function sendBet(selection) {
+            const amount = 10; // Example amount
+            
+            const eventName = (version === 'dt') ? 'place-bet-dt' : 'place-bet-cl';
+            
+            socket.emit(eventName, {
+                selection: selection,
+                amount: amount,
+                token: token
+            }, (response) => {
+                if(response.success) {
+                    alert("Bet placed on " + selection);
+                } else {
+                    alert("Error: " + response.message);
+                }
+            });
+        }
+
+        socket.on('disconnect', () => {
+            document.getElementById('status').innerText = "Disconnected. Reconnecting...";
+            document.getElementById('status').style.color = "red";
+        });
+
+    </script>
 </body>
 </html>
