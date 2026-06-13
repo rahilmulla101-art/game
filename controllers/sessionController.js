@@ -101,6 +101,9 @@ import pool from '../config/db.js';
 
 export const checkToken =
 async(req,res)=>{
+    console.log(
+        "checkToken called",req.body
+    );
 
 try{
 
