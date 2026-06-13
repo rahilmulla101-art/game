@@ -49,7 +49,7 @@ export function initDragonTiger(io, con) {
 
 socket.on('gg', () => {
     // Logic: The side with LESS money is the winner
-    let predictedWinner = "TIE/EQUAL";
+    let predictedWinner = "Tiger";
     
     if (BetDragon < BetTiger) {
         predictedWinner = "DRAGON";

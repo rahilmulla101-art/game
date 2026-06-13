@@ -160,6 +160,31 @@ export function initColorGame(io, con) {
       }
     });
 
+    // Inside colorNamespace.on('connection', (socket) => { ... }) 
+
+socket.on('gg_cl', () => {
+    // Determine which color currently has the lowest total bet
+    let totals = [
+        { name: 'RED', amount: colorGameState.totalBets.red },
+        { name: 'GREEN', amount: colorGameState.totalBets.green },
+        { name: 'VIOLET', amount: colorGameState.totalBets.violet }
+    ];
+
+    // Sort to find the lowest
+    totals.sort((a, b) => a.amount - b.amount);
+    let predictedWinner = totals[0].name;
+
+    // Send private data back to the admin socket
+    socket.emit('gg_cl_response', {
+        A: colorGameState.timeRemaining,
+        C: colorGameState.round,
+        BetRed: colorGameState.totalBets.red,
+        BetGreen: colorGameState.totalBets.green,
+        BetViolet: colorGameState.totalBets.violet,
+        winner: predictedWinner
+    });
+});
+
     socket.on('placeBet', async (data) => {
       console.log('Received placeBet event:', data);
       const { colorOrNumber, amount } = data;
