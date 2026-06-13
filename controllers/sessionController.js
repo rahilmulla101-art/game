@@ -106,11 +106,15 @@ async(req,res)=>{
     );
 
 try{
+const token = req.body?.token;
+const uuid = req.body?.uuid;
 
-    const {
-        token,
-        uuid
-    } = req.body;
+if (!token || !uuid) {
+    return res.json({
+        success: false,
+        message: 'Token and UUID are required'
+    });
+}
 
     const [rows] =
     await pool.query(
