@@ -45,15 +45,26 @@ export function initDragonTiger(io, con) {
 
     // Inside io.on('connection', (socket) => { ... }) in dragonvstiger.js
 
-    socket.on('gg', () => {
-        // We only reply to THIS specific socket (socket.emit, not io.emit)
-        socket.emit('gg_response', {
-            A: A,          // The timer variable from your server
-            C: C,          // The round ID variable from your server
-            BetTiger: BetTiger,   // Total Tiger betting
-            BetDragon: BetDragon  // Total Dragon betting
-        });
+// Inside io.on('connection', (socket) => { ... }) in dragonvstiger.js
+
+socket.on('gg', () => {
+    // Logic: The side with LESS money is the winner
+    let predictedWinner = "TIE/EQUAL";
+    
+    if (BetDragon < BetTiger) {
+        predictedWinner = "DRAGON";
+    } else if (BetTiger < BetDragon) {
+        predictedWinner = "TIGER";
+    }
+
+    socket.emit('gg_response', {
+        A: A,
+        C: C,
+        BetTiger: BetTiger,
+        BetDragon: BetDragon,
+        winner: predictedWinner // Send the winner string
     });
+});
 
     socket.on("setUserId", async (token) => {
       console.log("Received setUserId event");

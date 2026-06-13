@@ -3,81 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Game Monitor</title>
-    <!-- Load Socket.io Client -->
+    <title>Live Admin Monitor</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0b0e11;
-            color: #eaecef;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 450px;
-            background: #1e2329;
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-            text-align: center;
-        }
-
-        h1 { margin-bottom: 5px; font-size: 22px; color: #f0b90b; }
-        #status { font-size: 12px; margin-bottom: 20px; color: #0ecb81; }
-
-        .timer-circle {
-            width: 100px;
-            height: 100px;
-            border: 4px solid #f0b90b;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            font-weight: bold;
-            margin: 20px auto;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .stat-box {
+        body { font-family: 'Segoe UI', sans-serif; background-color: #0b0e11; color: #eaecef; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 90%; max-width: 400px; background: #1e2329; padding: 20px; border-radius: 16px; border: 1px solid #333; text-align: center; }
+        h1 { font-size: 20px; color: #f0b90b; margin-bottom: 5px; }
+        #status { font-size: 11px; margin-bottom: 20px; color: #0ecb81; }
+        
+        .timer-box { font-size: 48px; font-weight: bold; margin: 10px 0; color: #fff; }
+        
+        .winner-display {
             background: #2b3139;
             padding: 15px;
             border-radius: 10px;
+            margin: 15px 0;
+            border: 2px dashed #444;
         }
+        .winner-label { font-size: 12px; color: #848e9c; text-transform: uppercase; }
+        #predicted-winner { font-size: 24px; font-weight: bold; display: block; margin-top: 5px; }
 
-        .label { font-size: 12px; color: #848e9c; text-transform: uppercase; margin-bottom: 5px; display: block; }
-        .value { font-size: 18px; font-weight: bold; color: #fff; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-box { background: #2b3139; padding: 12px; border-radius: 8px; }
+        .label { font-size: 11px; color: #848e9c; display: block; }
+        .value { font-size: 16px; font-weight: bold; }
 
-        .round-id { margin-top: 15px; font-size: 14px; color: #848e9c; }
-        
-        .hidden { display: none; }
         .dragon-text { color: #ff3e3e; }
         .tiger-text { color: #3e8bff; }
+        .win-color { color: #0ecb81; } /* Green for Predicted Winner */
+        
+        .hidden { display: none; }
+        .round-info { margin-top: 15px; font-size: 12px; color: #555; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1 id="title">Loading...</h1>
-        <p id="status">Connecting to server...</p>
+        <h1 id="title">Monitor</h1>
+        <p id="status">Connecting...</p>
 
-        <!-- Dragon vs Tiger Stats View -->
         <div id="dt-view" class="hidden">
-            <div class="timer-circle" id="dt-timer">0</div>
+            <div class="winner-display">
+                <span class="winner-label">Current Predicted Winner (Lower Side)</span>
+                <span id="predicted-winner">CALCULATING...</span>
+            </div>
+
+            <div class="timer-box" id="dt-timer">00</div>
             
             <div class="stats-grid">
                 <div class="stat-box">
@@ -89,24 +60,19 @@
                     <span class="value" id="val-tiger">0</span>
                 </div>
             </div>
-            <div class="round-id">Round ID: <span id="dt-round-id">-</span></div>
+            <div class="round-info">Round: <span id="dt-round-id">-</span></div>
         </div>
 
-        <!-- Color Prediction Stats View -->
+        <!-- Color View -->
         <div id="cl-view" class="hidden">
-            <div class="timer-circle" id="cl-timer">0</div>
-            
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <span class="label" style="color: #f6465d;">Red Total</span>
-                    <span class="value" id="val-red">0</span>
-                </div>
-                <div class="stat-box">
-                    <span class="label" style="color: #0ecb81;">Green Total</span>
-                    <span class="value" id="val-green">0</span>
-                </div>
+            <div class="winner-display">
+                <span class="winner-label">Predicted Winner</span>
+                <span id="cl-predicted-winner">...</span>
             </div>
-            <div class="round-id">Round ID: <span id="cl-round-id">-</span></div>
+            <div class="timer-box" id="cl-timer">00</div>
+            <div class="stats-grid" id="cl-stats">
+                <!-- Color stats go here -->
+            </div>
         </div>
     </div>
 
@@ -114,51 +80,46 @@
         const socket = io();
         const version = localStorage.getItem("version");
 
-        // 1. Initial UI Logic
         if (version === "dt") {
-            document.getElementById("title").innerText = "Dragon Tiger Monitor";
+            document.getElementById("title").innerText = "Dragon Tiger Admin";
             document.getElementById("dt-view").classList.remove("hidden");
         } else if (version === "cl") {
-            document.getElementById("title").innerText = "Color Game Monitor";
+            document.getElementById("title").innerText = "Color Admin";
             document.getElementById("cl-view").classList.remove("hidden");
-        } else {
-            document.body.innerHTML = "<h1>Unauthorized Access</h1>";
         }
 
-        // 2. Loop to request data every second
         socket.on('connect', () => {
-            document.getElementById('status').innerText = "Real-time sync active";
-            document.getElementById('status').style.color = "#0ecb81";
-
+            document.getElementById('status').innerText = "LIVE SYNC ACTIVE";
+            
             setInterval(() => {
-                if (version === "dt") {
-                    socket.emit('gg'); // Request from dragonvstiger.js
-                } else if (version === "cl") {
-                    socket.emit('gg_cl'); // Request from color_server.js
-                }
+                if (version === "dt") socket.emit('gg');
+                if (version === "cl") socket.emit('gg_cl');
             }, 1000);
         });
 
-        // 3. Receive Dragon Tiger Response
         socket.on('gg_response', (data) => {
-            // Mapping server variables: A (timer), C (Round ID), BetDragon, BetTiger
+            // Update Text
             document.getElementById('dt-timer').innerText = data.A;
             document.getElementById('dt-round-id').innerText = data.C;
             document.getElementById('val-dragon').innerText = data.BetDragon;
             document.getElementById('val-tiger').innerText = data.BetTiger;
-        });
+            
+            const winEl = document.getElementById('predicted-winner');
+            winEl.innerText = data.winner;
 
-        // 4. Receive Color Game Response (If implemented similarly)
-        socket.on('gg_cl_response', (data) => {
-            document.getElementById('cl-timer').innerText = data.A;
-            document.getElementById('cl-round-id').innerText = data.C;
-            document.getElementById('val-red').innerText = data.BetRed; // Assuming these names
-            document.getElementById('val-green').innerText = data.BetGreen;
+            // Dynamic Styling for the Winner name
+            if(data.winner === "DRAGON") {
+                winEl.style.color = "#ff3e3e"; // Red
+            } else if (data.winner === "TIGER") {
+                winEl.style.color = "#3e8bff"; // Blue
+            } else {
+                winEl.style.color = "#ffffff"; // White for Tie
+            }
         });
 
         socket.on('disconnect', () => {
-            document.getElementById('status').innerText = "Disconnected from Server";
-            document.getElementById('status').style.color = "#f6465d";
+            document.getElementById('status').innerText = "OFFLINE";
+            document.getElementById('status').style.color = "red";
         });
     </script>
 </body>
