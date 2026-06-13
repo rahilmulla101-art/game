@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Token Login</title>
+</head>
+<body>
+
+<h2>Enter Auth Token</h2>
+
+<input
+id="token"
+placeholder="Enter Token">
+
+<button onclick="login()">
+Continue
+</button>
+
+<script>
+
+async function login(){
+
+    const token =
+        document.getElementById(
+            "token"
+        ).value;
+
+    localStorage.setItem(
+        "auth",
+        token
+    );
+
+    location.href =
+        "hh.html";
+}
+
+</script>
+
+</body>
+</html>

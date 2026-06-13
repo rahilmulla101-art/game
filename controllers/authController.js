@@ -101,7 +101,7 @@ console.log(ultraResponse.data);
 
     return res.json({
       success: true,
-      message: 'OTP sent successfully.'
+      message: 'OTP sent to whatsapp number successfully.'
     });
 
   } catch (error) {
@@ -1016,7 +1016,7 @@ console.log(
 
 return res.json({
     success: true,
-    message: 'OTP sent successfully'
+    message: 'OTP sent to whatsapp number successfully.'
 });
 
   } catch (error) {

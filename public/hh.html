@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>
+Checking Access...
+</h2>
+
+<script>
+
+async function getUUID(){
+
+    let uuid =
+        localStorage.getItem(
+            "device_uuid"
+        );
+
+    if(!uuid){
+
+        uuid =
+            crypto.randomUUID();
+
+        localStorage.setItem(
+            "device_uuid",
+            uuid
+        );
+
+    }
+
+    return uuid;
+}
+
+async function start(){
+
+    const token =
+        localStorage.getItem(
+            "auth"
+        );
+
+    if(!token){
+
+        location.href =
+            "login.html";
+
+        return;
+    }
+
+    const uuid =
+        await getUUID();
+
+    const response =
+        await fetch(
+            "/api/check-token",
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":
+                    "application/json"
+                },
+                body:JSON.stringify({
+                    token,
+                    uuid
+                })
+            }
+        );
+
+    const data =
+        await response.json();
+
+    if(!data.success){
+
+        alert(
+            data.message
+        );
+
+        location.href =
+            "haked.html";
+
+        return;
+    }
+
+    localStorage.setItem(
+        "version",
+        data.version
+    );
+
+    location.href =
+        "version.html";
+}
+
+start();
+
+</script>
+
+</body>
+</html>

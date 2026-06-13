@@ -28,6 +28,8 @@ import colorRoutes from './routes/color.js';
 import adminRoutes from './routes/admin.js';
 import userRoutes from './routes/user.js';
 import supportRoutes from './routes/support.js';
+import sessionRoutes from './routes/session.js';
+
 
 // Socket and Game loop services
 import { initSocketHandler } from './socket/socketHandler.js';
@@ -58,6 +60,13 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+app.use(
+    '/api',
+    sessionRoutes
+);
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

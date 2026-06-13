@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1 id="title">
+Loading...
+</h1>
+
+<script>
+
+const version =
+localStorage.getItem(
+    "version"
+);
+
+if(version==="dt"){
+
+    document
+    .getElementById(
+        "title"
+    )
+    .innerHTML =
+    "Dragon Tiger Version";
+
+}
+
+if(version==="cl"){
+
+    document
+    .getElementById(
+        "title"
+    )
+    .innerHTML =
+    "Color Prediction Version";
+
+}
+
+</script>
+
+</body>
+</html>
