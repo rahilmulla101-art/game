@@ -164,7 +164,7 @@
 
         // Update UI with real server data (Dragon Tiger)
         socket.on('gg_response_DT', (data) => {
-            conosle.log("Received DT data:", data);
+            console.log("Received DT data:", data);
             if(version === "dt") {
                 document.getElementById('live-timer').innerText = data.A;
                 document.getElementById('header-period').innerText = data.C;
