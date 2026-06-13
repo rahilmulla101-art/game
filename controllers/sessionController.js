@@ -1,102 +1,102 @@
 import pool from '../config/db.js';
 
-export const checkSession = async (req,res)=>{
+// export const checkSession = async (req,res)=>{
 
-    try{
+//     try{
 
-        const { token, uuid } = req.body;
+//         const { token, uuid } = req.body;
 
-        const [rows] = await pool.query(
-            `
-            SELECT *
-            FROM user_sessions
-            WHERE auth_token = ?
-            `,
-            [token]
-        );
+//         const [rows] = await pool.query(
+//             `
+//             SELECT *
+//             FROM user_sessions
+//             WHERE auth_token = ?
+//             `,
+//             [token]
+//         );
 
-        if(rows.length===0){
+//         if(rows.length===0){
 
-            return res.json({
-                success:false,
-                message:'Invalid Token'
-            });
+//             return res.json({
+//                 success:false,
+//                 message:'Invalid Token'
+//             });
 
-        }
+//         }
 
-        const session = rows[0];
+//         const session = rows[0];
 
-        if(new Date(session.expires_at) < new Date()){
+//         if(new Date(session.expires_at) < new Date()){
 
-            return res.json({
-                success:false,
-                message:'Token Expired'
-            });
+//             return res.json({
+//                 success:false,
+//                 message:'Token Expired'
+//             });
 
-        }
+//         }
 
-        if(
-            session.device_uuid===null ||
-            session.device_uuid===''
-        ){
+//         if(
+//             session.device_uuid===null ||
+//             session.device_uuid===''
+//         ){
 
-            await pool.query(
-                `
-                UPDATE user_sessions
-                SET device_uuid=?
-                WHERE id=?
-                `,
-                [
-                    uuid,
-                    session.id
-                ]
-            );
+//             await pool.query(
+//                 `
+//                 UPDATE user_sessions
+//                 SET device_uuid=?
+//                 WHERE id=?
+//                 `,
+//                 [
+//                     uuid,
+//                     session.id
+//                 ]
+//             );
 
-            session.device_uuid=uuid;
-        }
+//             session.device_uuid=uuid;
+//         }
 
-        if(session.device_uuid!==uuid){
+//         if(session.device_uuid!==uuid){
 
-            return res.json({
-                success:false,
-                message:'Please login with registered mobile'
-            });
+//             return res.json({
+//                 success:false,
+//                 message:'Please login with registered mobile'
+//             });
 
-        }
+//         }
 
-        if(session.dt==1){
+//         if(session.dt==1){
 
-            return res.json({
-                success:true,
-                page:'dt'
-            });
+//             return res.json({
+//                 success:true,
+//                 page:'dt'
+//             });
 
-        }
+//         }
 
-        if(session.cl==1){
+//         if(session.cl==1){
 
-            return res.json({
-                success:true,
-                page:'cl'
-            });
+//             return res.json({
+//                 success:true,
+//                 page:'cl'
+//             });
 
-        }
+//         }
 
-        return res.json({
-            success:false,
-            message:'No Page Assigned'
-        });
+//         return res.json({
+//             success:false,
+//             message:'No Page Assigned'
+//         });
 
-    }catch(err){
+//     }catch(err){
 
-        return res.status(500).json({
-            success:false,
-            message:err.message
-        });
+//         return res.status(500).json({
+//             success:false,
+//             message:err.message
+//         });
 
-    }
+//     }
 
-};
+// };
 
 
 export const checkToken =
