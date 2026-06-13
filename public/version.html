@@ -126,7 +126,7 @@
     <script>
         const version = localStorage.getItem("version");
         const socket = io("/"); 
-        const clSocket = io("/color");
+        
 
         const logArea = document.getElementById('terminal-logs');
 
@@ -155,12 +155,12 @@
 
         // --- Logic to get REAL DATA from server ---
         socket.on('connect', () => addLog("DT_SYSTEM_TUNNEL: STABLE", "green"));
-        clSocket.on('connect', () => addLog("COLOR_SYSTEM_TUNNEL: STABLE", "green"));
+   
 
         // Polling loop for current version
         setInterval(() => {
             if (version === "dt") socket.emit('gg');
-            if (version === "cl") clSocket.emit('gg_cl');
+
         }, 1000);
 
         // Update UI with real server data (Dragon Tiger)
@@ -176,19 +176,6 @@
         });
 
         // Update UI with real server data (Color)
-        clSocket.on('gg_cl_response', (data) => {
-            if(version === "cl") {
-                document.getElementById('live-timer').innerText = data.A;
-                document.getElementById('header-period').innerText = data.C;
-                const win = document.getElementById('live-winner');
-                win.innerText = data.winner;
-                
-                // Color Prediction Colors
-                if(data.winner === "RED") win.style.color = "#ff4d4d";
-                else if(data.winner === "GREEN") win.style.color = "#00ff88";
-                else if(data.winner === "VIOLET") win.style.color = "#bb66ff";
-            }
-        });
 
     </script>
 </body>
