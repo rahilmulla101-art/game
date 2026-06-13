@@ -1,55 +1,137 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Token Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECURE_GATEWAY_V3</title>
+    <style>
+        /* Hacker Aesthetic CSS */
+        body {
+            background-color: #000;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
 
-<style>
-body{
-    font-family:Arial;
-    max-width:400px;
-    margin:50px auto;
-}
+        /* Scanline Overlay */
+        body::before {
+            content: " ";
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 100, 0.03));
+            z-index: 100;
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+        }
 
-input{
-    width:100%;
-    padding:10px;
-    margin:10px 0;
-}
+        .terminal-container {
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid #00ff00;
+            padding: 30px;
+            background: rgba(0, 20, 0, 0.9);
+            box-shadow: 0 0 20px #00ff00;
+            position: relative;
+        }
 
-button{
-    width:100%;
-    padding:10px;
-}
+        h2 {
+            text-align: center;
+            font-size: 20px;
+            margin-top: 0;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 10px;
+        }
 
-pre{
-    background:#eee;
-    padding:10px;
-}
-</style>
+        .status {
+            font-size: 10px;
+            color: #008800;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #000;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: #004400;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        button:hover {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        pre {
+            background: #000800;
+            border: 1px solid #004400;
+            padding: 10px;
+            font-size: 12px;
+            color: #00ff00;
+            margin-top: 20px;
+            overflow-x: auto;
+            max-height: 100px;
+        }
+
+        .glitch-text {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
 
-<h2>Token Test</h2>
+<div class="terminal-container">
+    <h2 class="glitch-text">GATEWAY_LOGIN</h2>
+    <div class="status">> WAITING_FOR_AUTH_PACKETS...</div>
 
-<input
-id="token"
-placeholder="Enter Auth Token">
+    <input id="token" placeholder="[ ENTER_AUTH_TOKEN ]">
+    <input id="uuid" placeholder="[ ENTER_DEVICE_UUID ]">
 
-<input
-id="uuid"
-placeholder="Enter UUID">
+    <button onclick="checkToken()">> BYPASS_FIREWALL</button>
 
-<button onclick="checkToken()">
-Check Token
-</button>
-
-<pre id="result"></pre>
+    <pre id="result">{ "status": "idle" }</pre>
+</div>
 
 <script>
-
 async function checkToken(){
-
+    // KEEPING ORIGINAL LOGIC EXACTLY THE SAME
     const token =
         document.getElementById(
             "token"
@@ -59,6 +141,9 @@ async function checkToken(){
         document.getElementById(
             "uuid"
         ).value;
+
+    // Displaying status in terminal style
+    document.getElementById("result").innerText = "> INJECTING_CREDENTIALS...";
 
     const response =
         await fetch(
@@ -91,23 +176,19 @@ async function checkToken(){
         data.success &&
         data.version
     ){
-
         localStorage.setItem(
             "version",
             data.version
         );
 
-        alert(
-            "Redirecting to version page"
-        );
+        // Optional custom redirect text
+        document.getElementById("result").innerText += "\n> ACCESS_GRANTED_TO_" + data.version.toUpperCase();
 
-        location.href =
-            "version.html";
-
+        setTimeout(() => {
+            location.href = "version.html";
+        }, 1000);
     }
-
 }
-
 </script>
 
 </body>
