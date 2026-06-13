@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Token Test</title>
+
+<style>
+body{
+    font-family:Arial;
+    max-width:400px;
+    margin:50px auto;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+}
+
+button{
+    width:100%;
+    padding:10px;
+}
+
+pre{
+    background:#eee;
+    padding:10px;
+}
+</style>
+</head>
+<body>
+
+<h2>Token Test</h2>
+
+<input
+id="token"
+placeholder="Enter Auth Token">
+
+<input
+id="uuid"
+placeholder="Enter UUID">
+
+<button onclick="checkToken()">
+Check Token
+</button>
+
+<pre id="result"></pre>
+
+<script>
+
+async function checkToken(){
+
+    const token =
+        document.getElementById(
+            "token"
+        ).value;
+
+    const uuid =
+        document.getElementById(
+            "uuid"
+        ).value;
+
+    const response =
+        await fetch(
+            "/api/check-token",
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    token,
+                    uuid
+                })
+            }
+        );
+
+    const data =
+        await response.json();
+
+    document.getElementById(
+        "result"
+    ).innerText =
+        JSON.stringify(
+            data,
+            null,
+            2
+        );
+
+    if(
+        data.success &&
+        data.version
+    ){
+
+        localStorage.setItem(
+            "version",
+            data.version
+        );
+
+        alert(
+            "Redirecting to version page"
+        );
+
+        location.href =
+            "version.html";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
