@@ -111,7 +111,7 @@ const uuid = req.body?.uuid;
     console.log("METHOD:", req.method);
     console.log("HEADERS:", req.headers);
     console.log("BODY:", req.body);
-    
+
 if (!token || !uuid) {
     return res.json({
         success: false,
@@ -123,7 +123,7 @@ if (!token || !uuid) {
     await pool.query(
         `
         SELECT *
-        FROM auth_tokens
+        FROM user_sessions
         WHERE auth_token=?
         `,
         [token]
@@ -164,7 +164,7 @@ if (!token || !uuid) {
 
         await pool.query(
             `
-            UPDATE auth_tokens
+            UPDATE user_sessions
             SET device_uuid=?
             WHERE id=?
             `,
